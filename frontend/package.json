@@ -1,0 +1,17 @@
+{
+  "name": "vue-google-sso-frontend",
+  "version": "1.0.0",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build"
+  },
+  "dependencies": {
+    "core-js": "^3.6.5",
+    "vue": "^3.0.0",
+    "vue-router": "^4.0.0",
+    "axios": "^0.21.1"
+  },
+  "devDependencies": {
+    "@vue/cli-service": "~4.5.0"
+  }
+}
