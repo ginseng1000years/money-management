@@ -44,6 +44,36 @@ public class CategoryControllerTest {
     }
 
     @Test
+    public void testUpdateCategory() {
+        String categoryId = "4";
+        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
+        Category existingCategory = new Category();
+        existingCategory.setId(categoryId);
+        existingCategory.setName("Old Name");
+        existingCategory.setImage("old.png");
+        existingCategory.setType("expense");
+
+        Category updatedCategory = new Category();
+        updatedCategory.setId(categoryId);
+        updatedCategory.setName(updateDTO.getName());
+        updatedCategory.setImage(updateDTO.getImage());
+        updatedCategory.setType(updateDTO.getType());
+
+        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+
+        CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
+
+        assertEquals(categoryId, result.getId());
+        assertEquals("Updated Name", result.getName());
+        assertEquals("updated.png", result.getImage());
+        assertEquals("income", result.getType());
+
+        verify(categoryRepository, times(1)).findById(categoryId);
+        verify(categoryRepository, times(1)).save(any(Category.class));
+    }
+
+    @Test
     public void testGetAllCategories() {
         List<CategoryDTO> mockCategories = new ArrayList<>();
         mockCategories.add(new CategoryDTO("1", "Food", "food.png", "expense", null, null));
@@ -77,5 +107,16 @@ public class CategoryControllerTest {
         assertEquals("expense", result.getType());
 
         verify(categoryRepository, times(1)).save(any(Category.class));
+    }
+
+    @Test
+    public void testDeleteCategory() {
+        String categoryId = "3";
+
+        doNothing().when(categoryRepository).deleteById(categoryId);
+
+        categoryController.deleteCategory(categoryId);
+
+        verify(categoryRepository, times(1)).deleteById(categoryId);
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 public class UserController {
@@ -18,6 +19,9 @@ public class UserController {
 
     @GetMapping("/api/userinfo")
     public Map<String, Object> userInfo(@AuthenticationPrincipal OAuth2User principal) {
-        return principal.getAttributes();
+        Map<String, Object> userInfo = new HashMap<>(principal.getAttributes());
+        // Add token info if available (this is a placeholder, actual token retrieval may differ)
+        userInfo.put("token", "JWT_TOKEN_PLACEHOLDER");
+        return userInfo;
     }
 }

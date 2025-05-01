@@ -56,4 +56,49 @@ public class CategoryService {
         Category savedCategory = categoryRepository.save(category);
         return CategoryDTO.fromEntity(savedCategory);
     }
+
+    /**
+     * Deletes a category by its ID.
+     *
+     * @param id The ID of the category to delete.
+     */
+    public void deleteCategory(String id) {
+        categoryRepository.deleteById(id);
+    }
+
+    /**
+     * Updates a category by its ID.
+     *
+     * @param id The ID of the category to update.
+     * @param categoryDTO The CategoryDTO containing updated data.
+     * @return The updated CategoryDTO.
+     * @throws IllegalArgumentException if validation fails or category not found.
+     */
+    public CategoryDTO updateCategory(String id, CategoryDTO categoryDTO) {
+        // Validate input
+        CategoryValidator.validate(categoryDTO);
+
+        // Find existing category
+        Category existingCategory = categoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Category not found with id: " + id));
+
+        // Update fields
+        existingCategory.setName(categoryDTO.getName());
+        existingCategory.setType(categoryDTO.getType());
+        existingCategory.setImage(categoryDTO.getImage());
+        existingCategory.setDescription(categoryDTO.getDescription());
+
+        if (categoryDTO.getParentCategory() != null && categoryDTO.getParentCategory().getId() != null) {
+            Category parentCategory = categoryRepository.findById(categoryDTO.getParentCategory().getId())
+                    .orElse(null);
+            existingCategory.setParentCategory(parentCategory);
+        } else {
+            existingCategory.setParentCategory(null);
+        }
+
+        // Save updated category
+        Category updatedCategory = categoryRepository.save(existingCategory);
+
+        return CategoryDTO.fromEntity(updatedCategory);
+    }
 }

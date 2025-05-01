@@ -6,9 +6,12 @@ import com.moneymanagement.core.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -42,5 +45,27 @@ public class CategoryController {
     @PostMapping
     public CategoryDTO addCategory(@RequestBody CategoryDTO categoryDTO) {
         return categoryService.addCategory(categoryDTO);
+    }
+
+    /**
+     * Updates a category by its ID.
+     *
+     * @param id The ID of the category to update.
+     * @param categoryDTO The CategoryDTO object containing updated category details.
+     * @return The updated CategoryDTO object.
+     */
+    @PutMapping("/{id}")
+    public CategoryDTO updateCategory(@PathVariable String id, @RequestBody CategoryDTO categoryDTO) {
+        return categoryService.updateCategory(id, categoryDTO);
+    }
+
+    /**
+     * Deletes a category by its ID.
+     *
+     * @param id The ID of the category to delete.
+     */
+    @DeleteMapping("/{id}")
+    public void deleteCategory(@PathVariable String id) {
+        categoryService.deleteCategory(id);
     }
 }

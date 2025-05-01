@@ -25,7 +25,7 @@ public class SecurityConfig {
             .cors().and()
             .csrf().disable() // Disable CSRF for testing purposes, consider enabling in production with proper config
             .authorizeRequests(authorize -> authorize
-                .antMatchers("/", "/login**", "/error**", "/test", "/api/categories").permitAll()
+                .antMatchers("/", "/login**", "/error**", "/test", "/api/categories/**").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
