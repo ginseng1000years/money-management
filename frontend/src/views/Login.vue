@@ -24,16 +24,18 @@ export default {
       this.errorMessage = '';
       const healthUrl = '/health';
       const oauthUrl = 'http://localhost:8180/oauth2/authorization/google';
-      try {
-        const response = await axios.get(healthUrl);
-        if (response.status === 200) {
-          window.location.href = oauthUrl;
-        } else {
-          this.errorMessage = 'Technical issue, please wait';
-        }
-      } catch (error) {
-        this.errorMessage = 'Technical issue, please wait';
-      }
+      window.location.href = oauthUrl;
+      // try {
+        
+      //   const response = await axios.get(healthUrl);
+      //   if (response.status === 200) {
+      //     window.location.href = oauthUrl;
+      //   } else {
+      //     this.errorMessage = 'Technical issue, please wait';
+      //   }
+      // } catch (error) {
+      //   this.errorMessage = 'Technical issue, please wait';
+      // }
     }
   }
 }

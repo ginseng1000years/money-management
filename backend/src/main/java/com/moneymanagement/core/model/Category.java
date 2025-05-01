@@ -18,6 +18,8 @@ public class Category {
 
     private String image;
 
+    private String type;  // "income" or "expense"
+
     @DBRef
     private Category parentCategory;
 
@@ -32,9 +34,10 @@ public class Category {
     public Category() {
     }
 
-    public Category(String name, String image, Category parentCategory, String description) {
+    public Category(String name, String image, String type, Category parentCategory, String description) {
         this.name = name;
         this.image = image;
+        this.type = type;
         this.parentCategory = parentCategory;
         this.description = description;
     }
@@ -61,6 +64,14 @@ public class Category {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Category getParentCategory() {
