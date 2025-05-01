@@ -19,9 +19,7 @@ public class UserController {
 
     @GetMapping("/api/userinfo")
     public Map<String, Object> userInfo(@AuthenticationPrincipal OAuth2User principal) {
-        Map<String, Object> userInfo = new HashMap<>(principal.getAttributes());
         // Add token info if available (this is a placeholder, actual token retrieval may differ)
-        userInfo.put("token", "JWT_TOKEN_PLACEHOLDER");
-        return userInfo;
+        return new HashMap<>(principal.getAttributes());
     }
 }

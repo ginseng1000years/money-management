@@ -14,6 +14,10 @@ import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.http.HttpStatus;
+
 @Configuration
 public class SecurityConfig {
 
@@ -25,8 +29,14 @@ public class SecurityConfig {
             .cors().and()
             .csrf().disable() // Disable CSRF for testing purposes, consider enabling in production with proper config
             .authorizeRequests(authorize -> authorize
-                .antMatchers("/", "/login**", "/error**", "/test", "/api/categories/**").permitAll()
+                .antMatchers("/", "/login**", "/error**", "/test").permitAll()
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(exception -> exception
+                .defaultAuthenticationEntryPointFor(
+                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                    new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/**")
+                )
             )
             .oauth2Login(oauth2 -> oauth2
                 .loginPage("/oauth2/authorization/google")

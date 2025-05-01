@@ -10,7 +10,7 @@
 </template>
 
 <script>
-import axios from '@/api/axios.js';
+import axios from '../api/axios.js';
 
 export default {
   name: 'Login',
@@ -22,20 +22,9 @@ export default {
   methods: {
     async signIn() {
       this.errorMessage = '';
-      const healthUrl = '/health';
-      const oauthUrl = 'http://localhost:8180/oauth2/authorization/google';
+      console.log('signIn called + ' + process.env.VUE_APP_OAUTH_URL);
+      const oauthUrl = process.env.VUE_APP_OAUTH_URL;
       window.location.href = oauthUrl;
-      // try {
-        
-      //   const response = await axios.get(healthUrl);
-      //   if (response.status === 200) {
-      //     window.location.href = oauthUrl;
-      //   } else {
-      //     this.errorMessage = 'Technical issue, please wait';
-      //   }
-      // } catch (error) {
-      //   this.errorMessage = 'Technical issue, please wait';
-      // }
     }
   }
 }

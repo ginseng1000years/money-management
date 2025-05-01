@@ -226,7 +226,7 @@ export default {
       this.showAuthError = false;
     },
     redirectToLogin() {
-      window.location.href = 'http://localhost:8180/oauth2/authorization/google';
+      window.location.href = process.env.VUE_APP_OAUTH_URL;
     },
     formatDate(dateString) {
       if (!dateString) return '-';

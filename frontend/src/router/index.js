@@ -79,7 +79,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const isAuthenticated = !!localStorage.getItem('user')
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'Login' })
+    window.location.href = process.env.VUE_APP_LOGIN_URL
   } else {
     next()
   }

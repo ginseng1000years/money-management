@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:8180',
+  baseURL: process.env.VUE_APP_API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -24,17 +24,26 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add a response interceptor to handle 401 Unauthorized responses
 apiClient.interceptors.response.use(
   response => response,
   error => {
-    if (error.response && error.response.status === 401) {
-      console.log('Unauthorized, redirecting to login...');
-      // Redirect to OAuth2 login page
-      window.location.href = 'http://localhost:8180/oauth2/authorization/google';
+    if (error.response) {
+      if (error.response.status === 401) {
+        console.log('Unauthorized, clearing localStorage and redirecting to login...');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = process.env.VUE_APP_LOGIN_URL;
+      } else if (error.response.status === 440) {
+        console.log('Session expired, clearing localStorage and redirecting to login...');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = process.env.VUE_APP_LOGIN_URL;
+      }
     }
     return Promise.reject(error);
   }
 );
+
+
 
 export default apiClient;
