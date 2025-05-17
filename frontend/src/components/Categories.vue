@@ -145,6 +145,7 @@ export default {
       categories: [],
       filteredCategories: [],
       searchTerm: '',
+      totalPages: 0,
       newCategory: {
         name: '',
         type: '',
@@ -230,6 +231,7 @@ export default {
       .then(response => {
         this.categories = response.data.content;
         this.totalItems = response.data.totalElements;
+        this.totalPages = Math.ceil(response.data.totalElements / this.itemsPerPage);
       })
       .catch(error => {
         console.error('Error fetching categories:', error);
