@@ -15,7 +15,7 @@ public interface CategoryMapper {
     @Mapping(target = "id", ignore = true)
     Category toEntity(CategoryDTO dto);
 
-    @Mapping(target = "parentCategory", source = "parentCategory")
+    @Mapping(target = "parentCategory", ignore = true)
     @Mapping(target = "id", ignore = true)
     void updateEntity(@MappingTarget Category existingCategory, @NonNull CategoryDTO dto);
 }
