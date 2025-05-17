@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.moneymanagement.core.mapper.CategoryMapperImpl;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -45,7 +46,9 @@ public class CategoryControllerTest {
 
     @Mock
     private CategoryRepository categoryRepository;
-
+    
+    private final CategoryMapper categoryMapper = new CategoryMapperImpl(); // MapStruct will provide the implementation
+    
     private CategoryController categoryController;
 
     private AutoCloseable closeable;
@@ -53,7 +56,6 @@ public class CategoryControllerTest {
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        CategoryMapper categoryMapper = new CategoryMapper();
         CategoryService categoryService = new CategoryService(categoryRepository, categoryMapper);
         categoryController = new CategoryController(categoryService);
     }
@@ -352,7 +354,6 @@ public class CategoryControllerTest {
             PageRequest pageRequest2 = PageRequest.of(0, 2, Sort.Direction.DESC, "name");
             when(categoryRepository.findAll(pageRequest2)).thenReturn(new org.springframework.data.domain.PageImpl<>(
                     mockCategories.subList(2, 4), pageRequest2, mockCategories.size()));
-
             Page<CategoryDTO> result2 = categoryController.getAllCategories(0, 2, "name", "desc");
 
             assertEquals(0, result2.getNumber());

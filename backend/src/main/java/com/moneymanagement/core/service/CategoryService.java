@@ -93,7 +93,7 @@ public class CategoryService {
                 .orElseThrow(() -> new IllegalArgumentException("Category not found with id: " + id));
 
         // Update fields using DTO
-        categoryMapper.updateEntity(categoryDTO, existingCategory);
+        categoryMapper.updateEntity(existingCategory, categoryDTO);
         
         // Set parent category if provided
         if (categoryDTO.getParentCategory() != null && categoryDTO.getParentCategory().getId() != null) {
