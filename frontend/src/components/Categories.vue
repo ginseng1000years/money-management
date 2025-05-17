@@ -69,7 +69,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="categories.length === 0">
+        <tr v-if="(filteredCategories.length > 0 ? filteredCategories : categories).length === 0">
           <td colspan="6" style="text-align: center; font-style: italic;">No category</td>
         </tr>
         <tr v-for="category in filteredCategories.length > 0 ? filteredCategories : categories" :key="category.id">
