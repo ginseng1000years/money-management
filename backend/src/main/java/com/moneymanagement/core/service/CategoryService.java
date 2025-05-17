@@ -29,9 +29,13 @@ public class CategoryService {
     }
 
     /**
-     * Retrieves all categories from the repository and maps them to DTOs.
+     * Retrieves a paginated and sorted list of categories as DTOs.
      *
-     * @return List of CategoryDTO representing all categories.
+     * @param page the page number to retrieve (zero-based)
+     * @param size the number of categories per page
+     * @param sort the field by which to sort categories
+     * @param direction the sort direction, either "asc" or "desc"
+     * @return a page of CategoryDTO objects matching the pagination and sorting criteria
      */
     public Page<CategoryDTO> getAllCategories(int page, int size, String sort, String direction) {
         Sort.Direction sortDirection = direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
