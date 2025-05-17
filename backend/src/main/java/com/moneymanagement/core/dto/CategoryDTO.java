@@ -1,7 +1,5 @@
 package com.moneymanagement.core.dto;
 
-import com.moneymanagement.core.model.Category;
-
 public class CategoryDTO {
 
     private String id;

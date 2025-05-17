@@ -5,6 +5,7 @@ import com.moneymanagement.core.mapper.CategoryMapper;
 import com.moneymanagement.core.model.Category;
 import com.moneymanagement.core.repository.CategoryRepository;
 import com.moneymanagement.core.service.CategoryService;
+import com.moneymanagement.core.validator.CategoryValidator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -49,6 +50,7 @@ public class CategoryControllerTest {
     
     private final CategoryMapper categoryMapper = new CategoryMapperImpl(); // MapStruct will provide the implementation
     
+    private final CategoryValidator categoryValidator = new CategoryValidator(); // MapStruct will provide the implementation
     private CategoryController categoryController;
 
     private AutoCloseable closeable;
@@ -56,7 +58,7 @@ public class CategoryControllerTest {
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        CategoryService categoryService = new CategoryService(categoryRepository, categoryMapper);
+        CategoryService categoryService = new CategoryService(categoryRepository, categoryMapper, categoryValidator);
         categoryController = new CategoryController(categoryService);
     }
 

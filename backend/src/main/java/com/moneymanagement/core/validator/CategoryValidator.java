@@ -2,11 +2,13 @@ package com.moneymanagement.core.validator;
 
 import com.moneymanagement.core.dto.CategoryDTO;
 import com.moneymanagement.core.model.Category;
+import org.springframework.stereotype.Service;
 
 /**
- * Utility class for validating CategoryDTO objects.
- * Provides a method to validate the fields of a CategoryDTO and throws exceptions if validation fails.
+ * Service class for validating CategoryDTO objects.
+ * Provides methods to validate category fields and throws exceptions if validation fails.
  */
+@Service
 public class CategoryValidator {
 
     /**
@@ -16,7 +18,7 @@ public class CategoryValidator {
      * @param categoryDTO The CategoryDTO object to validate.
      * @throws IllegalArgumentException if any validation rule is violated.
      */
-    public static void validate(CategoryDTO categoryDTO) {
+    public void validate(CategoryDTO categoryDTO) {
         if (categoryDTO == null) {
             throw new IllegalArgumentException("Category must not be null");
         }
@@ -32,7 +34,16 @@ public class CategoryValidator {
         }
     }
     
-    public static void validateCircularReference(Category parent, Category child) {
+        /**
+     * Validates that there are no circular references in the category hierarchy.
+     * Traverses up the parent chain from the given parent category to ensure
+     * the child category doesn't appear in its own ancestry.
+     *
+     * @param parent The potential parent category to check
+     * @param child The child category being assigned
+     * @throws IllegalArgumentException if a circular reference is detected
+     */
+    public void validateCircularReference(Category parent, Category child) {
         Category current = parent;
         while (current != null) {
             if (current.getId() != null && current.getId().equals(child.getId())) {

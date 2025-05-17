@@ -11,9 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * Service class for managing categories.
  * Provides methods to retrieve all categories and add a new category.
@@ -24,11 +21,13 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final CategoryValidator categoryValidator;
 
     @Autowired
-    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
+    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper, CategoryValidator categoryValidator) {
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
+        this.categoryValidator = categoryValidator;
     }
 
     /**
@@ -58,7 +57,7 @@ public class CategoryService {
      */
     public CategoryDTO addCategory(CategoryDTO categoryDTO) {
         // Validation
-        CategoryValidator.validate(categoryDTO);
+        categoryValidator.validate(categoryDTO);
 
         // Map DTO to entity
         Category category = categoryMapper.toEntity(categoryDTO);
@@ -86,7 +85,7 @@ public class CategoryService {
      */
     public CategoryDTO updateCategory(String id, CategoryDTO categoryDTO) {
         // Validate input
-        CategoryValidator.validate(categoryDTO);
+        categoryValidator.validate(categoryDTO);
 
         // Find existing category
         Category existingCategory = categoryRepository.findById(id)
@@ -105,7 +104,7 @@ public class CategoryService {
                 existingCategory.setParentCategory(parentCategory);
                 
                 // Validate circular reference
-                CategoryValidator.validateCircularReference(parentCategory, existingCategory);
+                categoryValidator.validateCircularReference(parentCategory, existingCategory);
             }
         } else {
             existingCategory.setParentCategory(null);
