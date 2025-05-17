@@ -278,6 +278,7 @@ export default {
         }
 
         this.closeModal();
+        this.filterCategories();
       } catch (error) {
         this.error = (error.response && error.response.data) ? error.response.data : 'Failed to save category';
         console.error('Failed to save category:', error);
@@ -305,6 +306,7 @@ export default {
       try {
         await apiClient.delete(`/api/categories/${this.deleteConfirmCategoryId}`);
         this.categories = this.categories.filter(cat => cat.id !== this.deleteConfirmCategoryId);
+        this.filterCategories();
       } catch (error) {
         if (error.response && error.response.status === 401) {
           // Show authentication error modal
