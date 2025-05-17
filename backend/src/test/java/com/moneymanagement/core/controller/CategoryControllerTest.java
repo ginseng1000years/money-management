@@ -220,6 +220,74 @@ public class CategoryControllerTest {
     }
     
     /**
+     * Tests that updating a category with an invalid parent ID throws an exception.
+     * Verifies that:
+     * - IllegalArgumentException is thrown when parent category doesn't exist
+     * - No save operation is attempted
+     */
+    @Test
+    void updateCategory_shouldThrowException_whenParentCategoryNotFound() {
+        // Given
+        String categoryId = "8";
+        String invalidParentId = "999";
+        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", 
+            new CategoryDTO(invalidParentId, "Invalid Parent", "invalid.png", "income", null, null), null);
+            
+        Category existingCategory = new Category();
+        existingCategory.setId(categoryId);
+        existingCategory.setName("Old Name");
+
+        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+        when(categoryRepository.findById(invalidParentId)).thenReturn(java.util.Optional.empty());
+
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () -> {
+            categoryController.updateCategory(categoryId, updateDTO);
+        }, "Should throw exception when parent category not found");
+        
+        verify(categoryRepository, times(1)).findById(categoryId);
+        verify(categoryRepository, times(1)).findById(invalidParentId);
+        verify(categoryRepository, never()).save(any(Category.class));
+    }
+    
+    /**
+     * Tests that updating a category with a circular parent reference throws an exception.
+     * Verifies that:
+     * - IllegalArgumentException is thrown when circular reference detected
+     * - No save operation is attempted
+     */
+    @Test
+    void updateCategory_shouldThrowException_whenCircularReferenceDetected() {
+        // Given
+        String categoryId = "10";
+        String parentId = "10";
+        
+        // Create circular reference where parent's parent is the child
+        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", 
+            new CategoryDTO(parentId, "Parent", "parent.png", "income", 
+                new CategoryDTO(categoryId, "Child", "child.png", "income", null, null), null), null);
+            
+        Category existingCategory = new Category();
+        existingCategory.setId(categoryId);
+        existingCategory.setName("Old Name");
+        
+        Category parentCategory = new Category();
+        parentCategory.setId(parentId);
+        parentCategory.setName("Parent");
+
+        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+        when(categoryRepository.findById(parentId)).thenReturn(java.util.Optional.of(parentCategory));
+
+        // When & Then
+        assertThrows(IllegalArgumentException.class, () -> {
+            categoryController.updateCategory(categoryId, updateDTO);
+        }, "Should throw exception when circular reference detected");
+        
+        verify(categoryRepository, times(2)).findById(categoryId);
+        verify(categoryRepository, never()).save(any(Category.class));
+    }
+    
+    /**
      * Tests that updating a non-existent category throws an exception.
      * Verifies that:
      * - IllegalArgumentException is thrown when category not found

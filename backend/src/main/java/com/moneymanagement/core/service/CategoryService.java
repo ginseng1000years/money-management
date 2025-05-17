@@ -97,7 +97,17 @@ public class CategoryService {
 
         if (categoryDTO.getParentCategory() != null && categoryDTO.getParentCategory().getId() != null) {
             Category parentCategory = categoryRepository.findById(categoryDTO.getParentCategory().getId())
-                    .orElse(null);
+                    .orElseThrow(() -> new IllegalArgumentException("Parent category not found with id: " + categoryDTO.getParentCategory().getId()));
+            
+            // Check for circular reference by recursively traversing parent chain
+            Category current = parentCategory;
+            while (current != null) {
+                if (current.getId() != null && current.getId().equals(existingCategory.getId())) {
+                    throw new IllegalArgumentException("Circular reference detected in category hierarchy");
+                }
+                current = current.getParentCategory();
+            }
+            
             existingCategory.setParentCategory(parentCategory);
         } else {
             existingCategory.setParentCategory(null);
