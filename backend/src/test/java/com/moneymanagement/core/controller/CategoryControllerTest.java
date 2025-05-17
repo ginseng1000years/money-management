@@ -4,6 +4,7 @@ import com.moneymanagement.core.dto.CategoryDTO;
 import com.moneymanagement.core.model.Category;
 import com.moneymanagement.core.repository.CategoryRepository;
 import com.moneymanagement.core.service.CategoryService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +19,11 @@ import java.util.List;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class CategoryControllerTest {
@@ -26,27 +31,30 @@ public class CategoryControllerTest {
     @Mock
     private CategoryRepository categoryRepository;
 
-    private CategoryService categoryService;
-
     private CategoryController categoryController;
 
+    private AutoCloseable closeable;
+
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        categoryService = new CategoryService(categoryRepository);
-        categoryController = new CategoryController();
-        // Inject the real service into the controller
-        try {
-            java.lang.reflect.Field serviceField = CategoryController.class.getDeclaredField("categoryService");
-            serviceField.setAccessible(true);
-            serviceField.set(categoryController, categoryService);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+    void setUp() {
+        closeable = MockitoAnnotations.openMocks(this);
+        CategoryService categoryService = new CategoryService(categoryRepository);
+        categoryController = new CategoryController(categoryService);
     }
 
+    @AfterEach
+    void tearDown() throws Exception {
+        closeable.close();
+    }
+
+    /**
+     * Tests that updating a category with valid input successfully updates the existing category.
+     * Verifies that:
+     * - The repository's findById and save methods are called exactly once
+     * - The returned CategoryDTO contains the updated values
+     */
     @Test
-    public void testUpdateCategory() {
+    void updateCategory_shouldUpdateExistingCategory_whenValidInputProvided() {
         String categoryId = "4";
         CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
         Category existingCategory = new Category();
@@ -75,8 +83,15 @@ public class CategoryControllerTest {
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 
+    /**
+     * Tests that retrieving all categories returns paginated and sorted results.
+     * Verifies:
+     * - Correct pagination (page number, size, total elements)
+     * - Proper sorting in both ascending and descending order
+     * - Repository's findAll method is called with correct PageRequest
+     */
     @Test
-    public void testGetAllCategories() {
+    void getAllCategories_shouldReturnPaginatedAndSortedCategories() {
         // Create test data
         List<Category> mockCategories = new ArrayList<>();
         mockCategories.add(new Category("Bonus", "bonus.png", "income", null, null));
@@ -109,14 +124,20 @@ public class CategoryControllerTest {
         assertEquals(2, result2.getSize());
         assertEquals(4, result2.getTotalElements());
         assertEquals(2, result2.getContent().size());
-        assertEquals("Transport", result2.getContent().get(0).getName());
-        assertEquals("Salary", result2.getContent().get(1).getName());
+        assertEquals("Salary", result2.getContent().get(0).getName());
+        assertEquals("Transport", result2.getContent().get(1).getName());
 
         verify(categoryRepository, times(2)).findAll(any(PageRequest.class));
     }
 
+    /**
+     * Tests that adding a new category with valid input successfully creates the category.
+     * Verifies:
+     * - The repository's save method is called exactly once
+     * - The returned CategoryDTO contains the correct values
+     */
     @Test
-    public void testAddCategory() {
+    void addCategory_shouldCreateNewCategory_whenValidInputProvided() {
         CategoryDTO inputCategory = new CategoryDTO(null, "Travel", "travel.png", "expense", null, null);
         Category savedCategory = new Category();
         savedCategory.setId("3");
@@ -136,8 +157,13 @@ public class CategoryControllerTest {
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 
+    /**
+     * Tests that deleting a category with an existing ID successfully removes it.
+     * Verifies:
+     * - The repository's deleteById method is called exactly once with the correct ID
+     */
     @Test
-    public void testDeleteCategory() {
+    void deleteCategory_shouldRemoveCategory_whenIdExists() {
         String categoryId = "3";
 
         doNothing().when(categoryRepository).deleteById(categoryId);

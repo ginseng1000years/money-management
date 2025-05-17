@@ -25,8 +25,12 @@ import org.springframework.data.domain.Page;
 @RequestMapping("/api/categories")
 public class CategoryController {
 
+    private final CategoryService categoryService;
+
     @Autowired
-    private CategoryService categoryService;
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     /**
      * Retrieves a paginated and sorted list of categories.
