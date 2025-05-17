@@ -6,6 +6,7 @@ import com.moneymanagement.core.repository.CategoryRepository;
 import com.moneymanagement.core.service.CategoryService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -60,410 +61,404 @@ public class CategoryControllerTest {
         closeable.close();
     }
 
-    /**
-     * Tests that updating a category with valid input successfully updates the existing category.
-     * Verifies that:
-     * - The repository's findById and save methods are called exactly once
-     * - The returned CategoryDTO contains the updated values
-     */
-    @Test
-    void updateCategory_shouldUpdateExistingCategory_whenValidInputProvided() {
-        // Given
-        String categoryId = "4";
-        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
-        
-        Category existingCategory = new Category();
-        existingCategory.setId(categoryId);
-        existingCategory.setName("Old Name");
-        existingCategory.setImage("old.png");
-        existingCategory.setType("expense");
+    @Nested
+    class UpdateCategoryTests {
+        /**
+         * Tests that updating a category with valid input successfully updates the existing category.
+         * Verifies that:
+         * - The repository's findById and save methods are called exactly once
+         * - The returned CategoryDTO contains the updated values
+         */
+        @Test
+        void updateCategory_shouldUpdateExistingCategory_whenValidInputProvided() {
+            // Given
+            String categoryId = "4";
+            CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
 
-        Category updatedCategory = new Category();
-        updatedCategory.setId(categoryId);
-        updatedCategory.setName(updateDTO.getName());
-        updatedCategory.setImage(updateDTO.getImage());
-        updatedCategory.setType(updateDTO.getType());
+            Category existingCategory = new Category();
+            existingCategory.setId(categoryId);
+            existingCategory.setName("Old Name");
+            existingCategory.setImage("old.png");
+            existingCategory.setType("expense");
 
-        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
-        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+            Category updatedCategory = new Category();
+            updatedCategory.setId(categoryId);
+            updatedCategory.setName(updateDTO.getName());
+            updatedCategory.setImage(updateDTO.getImage());
+            updatedCategory.setType(updateDTO.getType());
 
-        // When
-        CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
+            when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+            when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
 
-        // Then
-        assertAll("Verify all fields updated correctly",
-            () -> assertEquals(categoryId, result.getId(), "ID should match"),
-            () -> assertEquals("Updated Name", result.getName(), "Name should be updated"),
-            () -> assertEquals("updated.png", result.getImage(), "Image should be updated"),
-            () -> assertEquals("income", result.getType(), "Type should be updated")
-        );
+            // When
+            CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
 
-        verify(categoryRepository, times(1)).findById(categoryId);
-        verify(categoryRepository, times(1)).save(any(Category.class));
-    }
-    
-    /**
-     * Tests that updating a category with a parent ID correctly sets the parent relationship.
-     * Verifies that:
-     * - Both the category and parent category are looked up
-     * - The parent relationship is established in the updated category
-     * - The returned DTO reflects the parent relationship
-     */
-    @Test
-    void updateCategory_shouldSetParentCategory_whenParentIdProvided() {
-        // Given
-        String categoryId = "5";
-        String parentId = "10";
-        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", 
-            new CategoryDTO(parentId, "Parent", "parent.png", "income", null, null), null);
-            
-        Category existingCategory = new Category();
-        existingCategory.setId(categoryId);
-        existingCategory.setName("Old Name");
-        
-        Category parentCategory = new Category();
-        parentCategory.setId(parentId);
-        parentCategory.setName("Parent");
-        
-        Category updatedCategory = new Category();
-        updatedCategory.setId(categoryId);
-        updatedCategory.setName(updateDTO.getName());
-        updatedCategory.setParentCategory(parentCategory);
+            // Then
+            assertAll("Verify all fields updated correctly",
+                    () -> assertEquals(categoryId, result.getId(), "ID should match"),
+                    () -> assertEquals("Updated Name", result.getName(), "Name should be updated"),
+                    () -> assertEquals("updated.png", result.getImage(), "Image should be updated"),
+                    () -> assertEquals("income", result.getType(), "Type should be updated")
+            );
 
-        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
-        when(categoryRepository.findById(parentId)).thenReturn(java.util.Optional.of(parentCategory));
-        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+            verify(categoryRepository, times(1)).findById(categoryId);
+            verify(categoryRepository, times(1)).save(any(Category.class));
+        }
 
-        // When
-        CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
+        /**
+         * Tests that updating a category with a parent ID correctly sets the parent relationship.
+         * Verifies that:
+         * - Both the category and parent category are looked up
+         * - The parent relationship is established in the updated category
+         * - The returned DTO reflects the parent relationship
+         */
+        @Test
+        void updateCategory_shouldSetParentCategory_whenParentIdProvided() {
+            // Given
+            String categoryId = "5";
+            String parentId = "10";
+            CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income",
+                    new CategoryDTO(parentId, "Parent", "parent.png", "income", null, null), null);
 
-        // Then
-        assertAll("Verify parent category is set",
-            () -> assertEquals(parentId, result.getParentCategory().getId(), "Parent ID should match"),
-            () -> assertEquals("Parent", result.getParentCategory().getName(), "Parent name should match")
-        );
-        
-        verify(categoryRepository, times(1)).findById(categoryId);
-        verify(categoryRepository, times(1)).findById(parentId);
-        verify(categoryRepository, times(1)).save(any(Category.class));
-    }
-    
-    /**
-     * Tests that updating a category without a parent ID clears any existing parent relationship.
-     * Verifies that:
-     * - The parent category is set to null when not provided in update
-     * - The returned DTO has no parent category
-     */
-    @Test
-    void updateCategory_shouldClearParentCategory_whenParentIdNotProvided() {
-        // Given
-        String categoryId = "6";
-        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
-        
-        Category existingCategory = new Category();
-        existingCategory.setId(categoryId);
-        existingCategory.setName("Old Name");
-        existingCategory.setParentCategory(new Category("Old Parent", "parent.png", "income", null, null));
-        
-        Category updatedCategory = new Category();
-        updatedCategory.setId(categoryId);
-        updatedCategory.setName(updateDTO.getName());
-        updatedCategory.setParentCategory(null);
+            Category existingCategory = new Category();
+            existingCategory.setId(categoryId);
+            existingCategory.setName("Old Name");
 
-        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
-        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+            Category parentCategory = new Category();
+            parentCategory.setId(parentId);
+            parentCategory.setName("Parent");
 
-        // When
-        CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
+            Category updatedCategory = new Category();
+            updatedCategory.setId(categoryId);
+            updatedCategory.setName(updateDTO.getName());
+            updatedCategory.setParentCategory(parentCategory);
 
-        // Then
-        assertNull(result.getParentCategory(), "Parent category should be null");
-        
-        verify(categoryRepository, times(1)).findById(categoryId);
-        verify(categoryRepository, times(1)).save(any(Category.class));
-    }
-    
-    /**
-     * Tests that parent category lookup is skipped when parent ID is null.
-     * Verifies that:
-     * - No additional repository lookup occurs for null parent ID
-     * - Parent category remains null in the returned DTO
-     */
-    @Test
-    void updateCategory_shouldNotLookupParent_whenParentCategoryHasNullId() {
-        // Given
-        String categoryId = "7";
-        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", 
-            new CategoryDTO(null, "Parent", "parent.png", "income", null, null), null);
-            
-        Category existingCategory = new Category();
-        existingCategory.setId(categoryId);
-        existingCategory.setName("Old Name");
-        
-        Category updatedCategory = new Category();
-        updatedCategory.setId(categoryId);
-        updatedCategory.setName(updateDTO.getName());
+            when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+            when(categoryRepository.findById(parentId)).thenReturn(java.util.Optional.of(parentCategory));
+            when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
 
-        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
-        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+            // When
+            CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
 
-        // When
-        CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
+            // Then
+            assertAll("Verify parent category is set",
+                    () -> assertEquals(parentId, result.getParentCategory().getId(), "Parent ID should match"),
+                    () -> assertEquals("Parent", result.getParentCategory().getName(), "Parent name should match")
+            );
 
-        // Then
-        assertEquals("Updated Name", result.getName());
-        verify(categoryRepository, times(1)).findById(categoryId);
-        verify(categoryRepository, times(1)).save(any(Category.class));
-        
-        // Verify parent category is set to null
-        assertNull(result.getParentCategory(), "Parent category should be null when parent ID is null");
-    }
-    
-    /**
-     * Tests that updating a category with an invalid parent ID throws an exception.
-     * Verifies that:
-     * - IllegalArgumentException is thrown when parent category doesn't exist
-     * - No save operation is attempted
-     */
-    @Test
-    void updateCategory_shouldThrowException_whenParentCategoryNotFound() {
-        // Given
-        String categoryId = "8";
-        String invalidParentId = "999";
-        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", 
-            new CategoryDTO(invalidParentId, "Invalid Parent", "invalid.png", "income", null, null), null);
-            
-        Category existingCategory = new Category();
-        existingCategory.setId(categoryId);
-        existingCategory.setName("Old Name");
+            verify(categoryRepository, times(1)).findById(categoryId);
+            verify(categoryRepository, times(1)).findById(parentId);
+            verify(categoryRepository, times(1)).save(any(Category.class));
+        }
 
-        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
-        when(categoryRepository.findById(invalidParentId)).thenReturn(java.util.Optional.empty());
+        /**
+         * Tests that updating a category without a parent ID clears any existing parent relationship.
+         * Verifies that:
+         * - The parent category is set to null when not provided in update
+         * - The returned DTO has no parent category
+         */
+        @Test
+        void updateCategory_shouldClearParentCategory_whenParentIdNotProvided() {
+            // Given
+            String categoryId = "6";
+            CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
 
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            categoryController.updateCategory(categoryId, updateDTO);
-        }, "Should throw exception when parent category not found");
-        
-        verify(categoryRepository, times(1)).findById(categoryId);
-        verify(categoryRepository, times(1)).findById(invalidParentId);
-        verify(categoryRepository, never()).save(any(Category.class));
-    }
-    
-    /**
-     * Tests that updating a category with a circular parent reference throws an exception.
-     * Verifies that:
-     * - IllegalArgumentException is thrown when circular reference detected
-     * - No save operation is attempted
-     */
-    @Test
-    void updateCategory_shouldThrowException_whenCircularReferenceDetected() {
-        // Given
-        String categoryId = "10";
-        String parentId = "10";
-        
-        // Create circular reference where parent's parent is the child
-        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", 
-            new CategoryDTO(parentId, "Parent", "parent.png", "income", 
-                new CategoryDTO(categoryId, "Child", "child.png", "income", null, null), null), null);
-            
-        Category existingCategory = new Category();
-        existingCategory.setId(categoryId);
-        existingCategory.setName("Old Name");
-        
-        Category parentCategory = new Category();
-        parentCategory.setId(parentId);
-        parentCategory.setName("Parent");
+            Category existingCategory = new Category();
+            existingCategory.setId(categoryId);
+            existingCategory.setName("Old Name");
+            existingCategory.setParentCategory(new Category("Old Parent", "parent.png", "income", null, null));
 
-        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
-        when(categoryRepository.findById(parentId)).thenReturn(java.util.Optional.of(parentCategory));
+            Category updatedCategory = new Category();
+            updatedCategory.setId(categoryId);
+            updatedCategory.setName(updateDTO.getName());
+            updatedCategory.setParentCategory(null);
 
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            categoryController.updateCategory(categoryId, updateDTO);
-        }, "Should throw exception when circular reference detected");
-        
-        verify(categoryRepository, times(2)).findById(categoryId);
-        verify(categoryRepository, never()).save(any(Category.class));
-    }
-    
-    /**
-     * Tests that updating a non-existent category throws an exception.
-     * Verifies that:
-     * - IllegalArgumentException is thrown when category not found
-     * - No save operation is attempted
-     */
-    @Test
-    void updateCategory_shouldThrowException_whenCategoryNotFound() {
-        // Given
-        String nonExistentId = "999";
-        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
-        
-        when(categoryRepository.findById(nonExistentId)).thenReturn(java.util.Optional.empty());
+            when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+            when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
 
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            categoryController.updateCategory(nonExistentId, updateDTO);
-        }, "Should throw exception when category not found");
-        
-        verify(categoryRepository, times(1)).findById(nonExistentId);
-        verify(categoryRepository, never()).save(any(Category.class));
-    }
+            // When
+            CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
 
-    /**
-     * Tests that retrieving all categories returns paginated and sorted results.
-     * Verifies:
-     * - Correct pagination (page number, size, total elements)
-     * - Proper sorting in both ascending and descending order
-     * - Repository's findAll method is called with correct PageRequest
-     */
-    /**
-     * Tests that retrieving all categories returns properly paginated and sorted results.
-     * Verifies:
-     * - Correct pagination (page number, size, total elements)
-     * - Proper sorting in both ascending and descending order
-     * - Repository's findAll method is called with correct PageRequest
-     */
-    @Test
-    void getAllCategories_shouldReturnPaginatedAndSortedCategories() {
-        // Create test data
-        List<Category> mockCategories = new ArrayList<>();
-        mockCategories.add(new Category("Bonus", "bonus.png", "income", null, null));
-        mockCategories.add(new Category("Food", "food.png", "expense", null, null));
-        mockCategories.add(new Category("Salary", "salary.png", "income", null, null));
-        mockCategories.add(new Category("Transport", "transport.png", "expense", null, null));
+            // Then
+            assertNull(result.getParentCategory(), "Parent category should be null");
 
-        // Test pagination
-        PageRequest pageRequest1 = PageRequest.of(0, 2, Sort.Direction.ASC, "name");
-        when(categoryRepository.findAll(pageRequest1)).thenReturn(new org.springframework.data.domain.PageImpl<>(
-            mockCategories.subList(0, 2), pageRequest1, mockCategories.size()));
+            verify(categoryRepository, times(1)).findById(categoryId);
+            verify(categoryRepository, times(1)).save(any(Category.class));
+        }
 
-        Page<CategoryDTO> result1 = categoryController.getAllCategories(0, 2, "name", "asc");
-        
-        assertEquals(0, result1.getNumber());
-        assertEquals(2, result1.getSize());
-        assertEquals(4, result1.getTotalElements());
-        assertEquals(2, result1.getContent().size());
-        assertEquals("Bonus", result1.getContent().get(0).getName());
-        assertEquals("Food", result1.getContent().get(1).getName());
+        /**
+         * Tests that parent category lookup is skipped when parent ID is null.
+         * Verifies that:
+         * - No additional repository lookup occurs for null parent ID
+         * - Parent category remains null in the returned DTO
+         */
+        @Test
+        void updateCategory_shouldNotLookupParent_whenParentCategoryHasNullId() {
+            // Given
+            String categoryId = "7";
+            CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income",
+                    new CategoryDTO(null, "Parent", "parent.png", "income", null, null), null);
 
-        // Test sorting descending
-        PageRequest pageRequest2 = PageRequest.of(0, 2, Sort.Direction.DESC, "name");
-        when(categoryRepository.findAll(pageRequest2)).thenReturn(new org.springframework.data.domain.PageImpl<>(
-            mockCategories.subList(2, 4), pageRequest2, mockCategories.size()));
+            Category existingCategory = new Category();
+            existingCategory.setId(categoryId);
+            existingCategory.setName("Old Name");
 
-        Page<CategoryDTO> result2 = categoryController.getAllCategories(0, 2, "name", "desc");
-        
-        assertEquals(0, result2.getNumber());
-        assertEquals(2, result2.getSize());
-        assertEquals(4, result2.getTotalElements());
-        assertEquals(2, result2.getContent().size());
-        assertEquals("Salary", result2.getContent().get(0).getName());
-        assertEquals("Transport", result2.getContent().get(1).getName());
+            Category updatedCategory = new Category();
+            updatedCategory.setId(categoryId);
+            updatedCategory.setName(updateDTO.getName());
 
-        verify(categoryRepository, times(2)).findAll(any(PageRequest.class));
+            when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+            when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+
+            // When
+            CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
+
+            // Then
+            assertEquals("Updated Name", result.getName());
+            verify(categoryRepository, times(1)).findById(categoryId);
+            verify(categoryRepository, times(1)).save(any(Category.class));
+
+            // Verify parent category is set to null
+            assertNull(result.getParentCategory(), "Parent category should be null when parent ID is null");
+        }
+
+        /**
+         * Tests that updating a category with an invalid parent ID throws an exception.
+         * Verifies that:
+         * - IllegalArgumentException is thrown when parent category doesn't exist
+         * - No save operation is attempted
+         */
+        @Test
+        void updateCategory_shouldThrowException_whenParentCategoryNotFound() {
+            // Given
+            String categoryId = "8";
+            String invalidParentId = "999";
+            CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income",
+                    new CategoryDTO(invalidParentId, "Invalid Parent", "invalid.png", "income", null, null), null);
+
+            Category existingCategory = new Category();
+            existingCategory.setId(categoryId);
+            existingCategory.setName("Old Name");
+
+            when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+            when(categoryRepository.findById(invalidParentId)).thenReturn(java.util.Optional.empty());
+
+            // When & Then
+            assertThrows(IllegalArgumentException.class, () -> {
+                categoryController.updateCategory(categoryId, updateDTO);
+            }, "Should throw exception when parent category not found");
+
+            verify(categoryRepository, times(1)).findById(categoryId);
+            verify(categoryRepository, times(1)).findById(invalidParentId);
+            verify(categoryRepository, never()).save(any(Category.class));
+        }
+
+        /**
+         * Tests that updating a category with a circular parent reference throws an exception.
+         * Verifies that:
+         * - IllegalArgumentException is thrown when circular reference detected
+         * - No save operation is attempted
+         */
+        @Test
+        void updateCategory_shouldThrowException_whenCircularReferenceDetected() {
+            // Given
+            String categoryId = "10";
+            String parentId = "10";
+
+            // Create circular reference where parent's parent is the child
+            CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income",
+                    new CategoryDTO(parentId, "Parent", "parent.png", "income",
+                            new CategoryDTO(categoryId, "Child", "child.png", "income", null, null), null), null);
+
+            Category existingCategory = new Category();
+            existingCategory.setId(categoryId);
+            existingCategory.setName("Old Name");
+
+            Category parentCategory = new Category();
+            parentCategory.setId(parentId);
+            parentCategory.setName("Parent");
+
+            when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+            when(categoryRepository.findById(parentId)).thenReturn(java.util.Optional.of(parentCategory));
+
+            // When & Then
+            assertThrows(IllegalArgumentException.class, () -> {
+                categoryController.updateCategory(categoryId, updateDTO);
+            }, "Should throw exception when circular reference detected");
+
+            verify(categoryRepository, times(2)).findById(categoryId);
+            verify(categoryRepository, never()).save(any(Category.class));
+        }
+
+        /**
+         * Tests that updating a non-existent category throws an exception.
+         * Verifies that:
+         * - IllegalArgumentException is thrown when category not found
+         * - No save operation is attempted
+         */
+        @Test
+        void updateCategory_shouldThrowException_whenCategoryNotFound() {
+            // Given
+            String nonExistentId = "999";
+            CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
+
+            when(categoryRepository.findById(nonExistentId)).thenReturn(java.util.Optional.empty());
+
+            // When & Then
+            assertThrows(IllegalArgumentException.class, () -> {
+                categoryController.updateCategory(nonExistentId, updateDTO);
+            }, "Should throw exception when category not found");
+
+            verify(categoryRepository, times(1)).findById(nonExistentId);
+            verify(categoryRepository, never()).save(any(Category.class));
+        }
     }
 
-    /**
-     * Tests that adding a new category with valid input successfully creates the category.
-     * Verifies:
-     * - The repository's save method is called exactly once
-     * - The returned CategoryDTO contains the correct values
-     */
-    /**
-     * Tests that adding a new category with valid input successfully creates the category.
-     * Verifies:
-     * - The repository's save method is called exactly once
-     * - The returned CategoryDTO contains the correct values
-     */
-    @Test
-    void addCategory_shouldCreateNewCategory_whenValidInputProvided() {
-        // Given
-        CategoryDTO inputCategory = new CategoryDTO(null, "Travel", "travel.png", "expense", null, null);
-        
-        Category savedCategory = new Category();
-        savedCategory.setId("3");
-        savedCategory.setName("Travel");
-        savedCategory.setImage("travel.png");
-        savedCategory.setType("expense");
+    @Nested
+    class GetCategoryTests {
+        /**
+         * Tests that retrieving all categories returns properly paginated and sorted results.
+         * Verifies:
+         * - Correct pagination (page number, size, total elements)
+         * - Proper sorting in both ascending and descending order
+         * - Repository's findAll method is called with correct PageRequest
+         */
+        @Test
+        void getAllCategories_shouldReturnPaginatedAndSortedCategories() {
+            // Create test data
+            List<Category> mockCategories = new ArrayList<>();
+            mockCategories.add(new Category("Bonus", "bonus.png", "income", null, null));
+            mockCategories.add(new Category("Food", "food.png", "expense", null, null));
+            mockCategories.add(new Category("Salary", "salary.png", "income", null, null));
+            mockCategories.add(new Category("Transport", "transport.png", "expense", null, null));
 
-        when(categoryRepository.save(any(Category.class))).thenReturn(savedCategory);
+            // Test pagination
+            PageRequest pageRequest1 = PageRequest.of(0, 2, Sort.Direction.ASC, "name");
+            when(categoryRepository.findAll(pageRequest1)).thenReturn(new org.springframework.data.domain.PageImpl<>(
+                    mockCategories.subList(0, 2), pageRequest1, mockCategories.size()));
 
-        // When
-        CategoryDTO result = categoryController.addCategory(inputCategory);
+            Page<CategoryDTO> result1 = categoryController.getAllCategories(0, 2, "name", "asc");
 
-        // Then
-        assertAll("Verify all fields are correctly set",
-            () -> assertEquals("3", result.getId(), "ID should match"),
-            () -> assertEquals("Travel", result.getName(), "Name should match"),
-            () -> assertEquals("travel.png", result.getImage(), "Image should match"),
-            () -> assertEquals("expense", result.getType(), "Type should match")
-        );
+            assertEquals(0, result1.getNumber());
+            assertEquals(2, result1.getSize());
+            assertEquals(4, result1.getTotalElements());
+            assertEquals(2, result1.getContent().size());
+            assertEquals("Bonus", result1.getContent().get(0).getName());
+            assertEquals("Food", result1.getContent().get(1).getName());
 
-        verify(categoryRepository, times(1)).save(any(Category.class));
-    }
-    
-    /**
-     * Tests that adding a category with invalid input throws an exception.
-     * Verifies:
-     * - IllegalArgumentException is thrown for invalid input
-     * - No save operation is attempted
-     */
-    @Test
-    void addCategory_shouldThrowException_whenInvalidInputProvided() {
-        // Given
-        CategoryDTO invalidCategory = new CategoryDTO(null, "", "", "", null, null);
-        
-        // When & Then
-        assertThrows(IllegalArgumentException.class, () -> {
-            categoryController.addCategory(invalidCategory);
-        }, "Should throw exception when invalid input provided");
-        
-        verify(categoryRepository, never()).save(any(Category.class));
+            // Test sorting descending
+            PageRequest pageRequest2 = PageRequest.of(0, 2, Sort.Direction.DESC, "name");
+            when(categoryRepository.findAll(pageRequest2)).thenReturn(new org.springframework.data.domain.PageImpl<>(
+                    mockCategories.subList(2, 4), pageRequest2, mockCategories.size()));
+
+            Page<CategoryDTO> result2 = categoryController.getAllCategories(0, 2, "name", "desc");
+
+            assertEquals(0, result2.getNumber());
+            assertEquals(2, result2.getSize());
+            assertEquals(4, result2.getTotalElements());
+            assertEquals(2, result2.getContent().size());
+            assertEquals("Salary", result2.getContent().get(0).getName());
+            assertEquals("Transport", result2.getContent().get(1).getName());
+
+            verify(categoryRepository, times(2)).findAll(any(PageRequest.class));
+        }
     }
 
-    /**
-     * Tests that deleting a category with an existing ID successfully removes it.
-     * Verifies:
-     * - The repository's deleteById method is called exactly once with the correct ID
-     */
-    /**
-     * Tests that deleting a category with an existing ID successfully removes it.
-     * Verifies:
-     * - The repository's deleteById method is called exactly once with the correct ID
-     */
-    @Test
-    void deleteCategory_shouldRemoveCategory_whenIdExists() {
-        // Given
-        String categoryId = "3";
-        
-        doNothing().when(categoryRepository).deleteById(categoryId);
+    @Nested
+    class AddCategoryTests {
+        /**
+         * Tests that adding a new category with valid input successfully creates the category.
+         * Verifies:
+         * - The repository's save method is called exactly once
+         * - The returned CategoryDTO contains the correct values
+         */
+        @Test
+        void addCategory_shouldCreateNewCategory_whenValidInputProvided() {
+            // Given
+            CategoryDTO inputCategory = new CategoryDTO(null, "Travel", "travel.png", "expense", null, null);
 
-        // When
-        categoryController.deleteCategory(categoryId);
+            Category savedCategory = new Category();
+            savedCategory.setId("3");
+            savedCategory.setName("Travel");
+            savedCategory.setImage("travel.png");
+            savedCategory.setType("expense");
 
-        // Then
-        verify(categoryRepository, times(1)).deleteById(categoryId);
+            when(categoryRepository.save(any(Category.class))).thenReturn(savedCategory);
+
+            // When
+            CategoryDTO result = categoryController.addCategory(inputCategory);
+
+            // Then
+            assertAll("Verify all fields are correctly set",
+                    () -> assertEquals("3", result.getId(), "ID should match"),
+                    () -> assertEquals("Travel", result.getName(), "Name should match"),
+                    () -> assertEquals("travel.png", result.getImage(), "Image should match"),
+                    () -> assertEquals("expense", result.getType(), "Type should match")
+            );
+
+            verify(categoryRepository, times(1)).save(any(Category.class));
+        }
+
+        /**
+         * Tests that adding a category with invalid input throws an exception.
+         * Verifies:
+         * - IllegalArgumentException is thrown for invalid input
+         * - No save operation is attempted
+         */
+        @Test
+        void addCategory_shouldThrowException_whenInvalidInputProvided() {
+            // Given
+            CategoryDTO invalidCategory = new CategoryDTO(null, "", "", "", null, null);
+
+            // When & Then
+            assertThrows(IllegalArgumentException.class, () -> {
+                categoryController.addCategory(invalidCategory);
+            }, "Should throw exception when invalid input provided");
+
+            verify(categoryRepository, never()).save(any(Category.class));
+        }
     }
-    
-    /**
-     * Tests that deleting a non-existent category does not throw an exception.
-     * Verifies:
-     * - Operation completes normally when category doesn't exist
-     * - deleteById is still called with the provided ID
-     */
-    @Test
-    void deleteCategory_shouldNotThrowException_whenIdDoesNotExist() {
-        // Given
-        String nonExistentId = "999";
-        
-        doNothing().when(categoryRepository).deleteById(nonExistentId);
 
-        // When & Then
-        assertDoesNotThrow(() -> {
-            categoryController.deleteCategory(nonExistentId);
-        }, "Should not throw exception when deleting non-existent category");
-        
-        verify(categoryRepository, times(1)).deleteById(nonExistentId);
+    @Nested
+    class DeleteCategoryTests {
+        /**
+         * Tests that deleting a category with an existing ID successfully removes it.
+         * Verifies:
+         * - The repository's deleteById method is called exactly once with the correct ID
+         */
+        @Test
+        void deleteCategory_shouldRemoveCategory_whenIdExists() {
+            // Given
+            String categoryId = "3";
+
+            doNothing().when(categoryRepository).deleteById(categoryId);
+
+            // When
+            categoryController.deleteCategory(categoryId);
+
+            // Then
+            verify(categoryRepository, times(1)).deleteById(categoryId);
+        }
+
+        /**
+         * Tests that deleting a non-existent category does not throw an exception.
+         * Verifies:
+         * - Operation completes normally when category doesn't exist
+         * - deleteById is still called with the provided ID
+         */
+        @Test
+        void deleteCategory_shouldNotThrowException_whenIdDoesNotExist() {
+            // Given
+            String nonExistentId = "999";
+
+            doNothing().when(categoryRepository).deleteById(nonExistentId);
+
+            // When & Then
+            assertDoesNotThrow(() -> {
+                categoryController.deleteCategory(nonExistentId);
+            }, "Should not throw exception when deleting non-existent category");
+
+            verify(categoryRepository, times(1)).deleteById(nonExistentId);
+        }
     }
 }
