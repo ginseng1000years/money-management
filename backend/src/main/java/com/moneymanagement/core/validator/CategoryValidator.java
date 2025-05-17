@@ -1,6 +1,7 @@
 package com.moneymanagement.core.validator;
 
 import com.moneymanagement.core.dto.CategoryDTO;
+import com.moneymanagement.core.model.Category;
 
 /**
  * Utility class for validating CategoryDTO objects.
@@ -28,6 +29,16 @@ public class CategoryValidator {
         if (categoryDTO.getType() == null || 
             !(categoryDTO.getType().equalsIgnoreCase("income") || categoryDTO.getType().equalsIgnoreCase("expense"))) {
             throw new IllegalArgumentException("Category type must be either 'income' or 'expense'");
+        }
+    }
+    
+    public static void validateCircularReference(Category parent, Category child) {
+        Category current = parent;
+        while (current != null) {
+            if (current.getId() != null && current.getId().equals(child.getId())) {
+                throw new IllegalArgumentException("Circular reference detected in category hierarchy");
+            }
+            current = current.getParentCategory();
         }
     }
 }

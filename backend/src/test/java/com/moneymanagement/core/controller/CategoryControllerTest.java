@@ -1,6 +1,7 @@
 package com.moneymanagement.core.controller;
 
 import com.moneymanagement.core.dto.CategoryDTO;
+import com.moneymanagement.core.mapper.CategoryMapper;
 import com.moneymanagement.core.model.Category;
 import com.moneymanagement.core.repository.CategoryRepository;
 import com.moneymanagement.core.service.CategoryService;
@@ -52,7 +53,8 @@ public class CategoryControllerTest {
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        CategoryService categoryService = new CategoryService(categoryRepository);
+        CategoryMapper categoryMapper = new CategoryMapper();
+        CategoryService categoryService = new CategoryService(categoryRepository, categoryMapper);
         categoryController = new CategoryController(categoryService);
     }
 
@@ -286,7 +288,7 @@ public class CategoryControllerTest {
                 categoryController.updateCategory(categoryId, updateDTO);
             }, "Should throw exception when circular reference detected");
 
-            verify(categoryRepository, times(2)).findById(categoryId);
+            verify(categoryRepository, times(1)).findById(categoryId);
             verify(categoryRepository, never()).save(any(Category.class));
         }
 

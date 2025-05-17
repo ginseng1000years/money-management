@@ -1,6 +1,7 @@
 package com.moneymanagement.core.service;
 
 import com.moneymanagement.core.dto.CategoryDTO;
+import com.moneymanagement.core.mapper.CategoryMapper;
 import com.moneymanagement.core.model.Category;
 import com.moneymanagement.core.repository.CategoryRepository;
 import com.moneymanagement.core.validator.CategoryValidator;
@@ -22,10 +23,12 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
     @Autowired
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
         this.categoryRepository = categoryRepository;
+        this.categoryMapper = categoryMapper;
     }
 
     /**
@@ -41,7 +44,7 @@ public class CategoryService {
         Sort.Direction sortDirection = direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sortDirection, sort));
         Page<Category> categories = categoryRepository.findAll(pageRequest);
-        return categories.map(CategoryDTO::fromEntity);
+        return categories.map(categoryMapper::fromEntity);
     }
 
     /**
@@ -58,10 +61,10 @@ public class CategoryService {
         CategoryValidator.validate(categoryDTO);
 
         // Map DTO to entity
-        Category category = categoryDTO.toEntity();
+        Category category = categoryMapper.toEntity(categoryDTO);
 
         Category savedCategory = categoryRepository.save(category);
-        return CategoryDTO.fromEntity(savedCategory);
+        return categoryMapper.fromEntity(savedCategory);
     }
 
     /**
@@ -89,26 +92,21 @@ public class CategoryService {
         Category existingCategory = categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Category not found with id: " + id));
 
-        // Update fields
-        existingCategory.setName(categoryDTO.getName());
-        existingCategory.setType(categoryDTO.getType());
-        existingCategory.setImage(categoryDTO.getImage());
-        existingCategory.setDescription(categoryDTO.getDescription());
-
+        // Update fields using DTO
+        categoryMapper.updateEntity(categoryDTO, existingCategory);
+        
+        // Set parent category if provided
         if (categoryDTO.getParentCategory() != null && categoryDTO.getParentCategory().getId() != null) {
-            Category parentCategory = categoryRepository.findById(categoryDTO.getParentCategory().getId())
+            if (categoryDTO.getParentCategory().getId().equals(id)) {
+                throw new IllegalArgumentException("Cannot set category as its own parent");
+            } else {
+                Category parentCategory = categoryRepository.findById(categoryDTO.getParentCategory().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Parent category not found with id: " + categoryDTO.getParentCategory().getId()));
-            
-            // Check for circular reference by recursively traversing parent chain
-            Category current = parentCategory;
-            while (current != null) {
-                if (current.getId() != null && current.getId().equals(existingCategory.getId())) {
-                    throw new IllegalArgumentException("Circular reference detected in category hierarchy");
-                }
-                current = current.getParentCategory();
+                existingCategory.setParentCategory(parentCategory);
+                
+                // Validate circular reference
+                CategoryValidator.validateCircularReference(parentCategory, existingCategory);
             }
-            
-            existingCategory.setParentCategory(parentCategory);
         } else {
             existingCategory.setParentCategory(null);
         }
@@ -116,6 +114,6 @@ public class CategoryService {
         // Save updated category
         Category updatedCategory = categoryRepository.save(existingCategory);
 
-        return CategoryDTO.fromEntity(updatedCategory);
+        return categoryMapper.fromEntity(updatedCategory);
     }
 }
