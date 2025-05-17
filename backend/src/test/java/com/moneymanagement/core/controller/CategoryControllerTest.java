@@ -30,6 +30,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+/**
+ * Test class for {@link com.moneymanagement.core.controller.CategoryController}.
+ * Verifies the functionality of category management endpoints including:
+ * - Retrieving paginated and sorted categories
+ * - Adding new categories
+ * - Updating existing categories
+ * - Deleting categories
+ */
 @ExtendWith(MockitoExtension.class)
 public class CategoryControllerTest {
 
@@ -94,6 +102,13 @@ public class CategoryControllerTest {
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
     
+    /**
+     * Tests that updating a category with a parent ID correctly sets the parent relationship.
+     * Verifies that:
+     * - Both the category and parent category are looked up
+     * - The parent relationship is established in the updated category
+     * - The returned DTO reflects the parent relationship
+     */
     @Test
     void updateCategory_shouldSetParentCategory_whenParentIdProvided() {
         // Given
@@ -133,6 +148,12 @@ public class CategoryControllerTest {
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
     
+    /**
+     * Tests that updating a category without a parent ID clears any existing parent relationship.
+     * Verifies that:
+     * - The parent category is set to null when not provided in update
+     * - The returned DTO has no parent category
+     */
     @Test
     void updateCategory_shouldClearParentCategory_whenParentIdNotProvided() {
         // Given
@@ -162,6 +183,12 @@ public class CategoryControllerTest {
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
     
+    /**
+     * Tests that parent category lookup is skipped when parent ID is null.
+     * Verifies that:
+     * - No additional repository lookup occurs for null parent ID
+     * - Parent category remains null in the returned DTO
+     */
     @Test
     void updateCategory_shouldNotLookupParent_whenParentCategoryHasNullId() {
         // Given
@@ -192,6 +219,12 @@ public class CategoryControllerTest {
         assertNull(result.getParentCategory(), "Parent category should be null when parent ID is null");
     }
     
+    /**
+     * Tests that updating a non-existent category throws an exception.
+     * Verifies that:
+     * - IllegalArgumentException is thrown when category not found
+     * - No save operation is attempted
+     */
     @Test
     void updateCategory_shouldThrowException_whenCategoryNotFound() {
         // Given
@@ -211,6 +244,13 @@ public class CategoryControllerTest {
 
     /**
      * Tests that retrieving all categories returns paginated and sorted results.
+     * Verifies:
+     * - Correct pagination (page number, size, total elements)
+     * - Proper sorting in both ascending and descending order
+     * - Repository's findAll method is called with correct PageRequest
+     */
+    /**
+     * Tests that retrieving all categories returns properly paginated and sorted results.
      * Verifies:
      * - Correct pagination (page number, size, total elements)
      * - Proper sorting in both ascending and descending order
@@ -262,6 +302,12 @@ public class CategoryControllerTest {
      * - The repository's save method is called exactly once
      * - The returned CategoryDTO contains the correct values
      */
+    /**
+     * Tests that adding a new category with valid input successfully creates the category.
+     * Verifies:
+     * - The repository's save method is called exactly once
+     * - The returned CategoryDTO contains the correct values
+     */
     @Test
     void addCategory_shouldCreateNewCategory_whenValidInputProvided() {
         // Given
@@ -289,6 +335,12 @@ public class CategoryControllerTest {
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
     
+    /**
+     * Tests that adding a category with invalid input throws an exception.
+     * Verifies:
+     * - IllegalArgumentException is thrown for invalid input
+     * - No save operation is attempted
+     */
     @Test
     void addCategory_shouldThrowException_whenInvalidInputProvided() {
         // Given
@@ -302,6 +354,11 @@ public class CategoryControllerTest {
         verify(categoryRepository, never()).save(any(Category.class));
     }
 
+    /**
+     * Tests that deleting a category with an existing ID successfully removes it.
+     * Verifies:
+     * - The repository's deleteById method is called exactly once with the correct ID
+     */
     /**
      * Tests that deleting a category with an existing ID successfully removes it.
      * Verifies:
@@ -321,6 +378,12 @@ public class CategoryControllerTest {
         verify(categoryRepository, times(1)).deleteById(categoryId);
     }
     
+    /**
+     * Tests that deleting a non-existent category does not throw an exception.
+     * Verifies:
+     * - Operation completes normally when category doesn't exist
+     * - deleteById is still called with the provided ID
+     */
     @Test
     void deleteCategory_shouldNotThrowException_whenIdDoesNotExist() {
         // Given
