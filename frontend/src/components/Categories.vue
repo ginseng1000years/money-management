@@ -179,12 +179,7 @@ export default {
         this.sortDirection = 'asc';
       }
       
-      this.categories.sort((a, b) => {
-        const modifier = this.sortDirection === 'asc' ? 1 : -1;
-        if (a[column] < b[column]) return -1 * modifier;
-        if (a[column] > b[column]) return 1 * modifier;
-        return 0;
-      });
+      this.fetchCategories();
     },
     previousPage() {
       if (this.currentPage > 1) {
