@@ -1,30 +1,27 @@
-# CodeRabbit configuration file
-# Enables automated code reviews on all branches
-
+# CodeRabbit configuration
 reviews:
-  # Enable reviews on all branches
   review_status: true
-  # Enable reviews on non-default branches
-  review_non_default_branches: true
-  # Enable auto-approval for minor changes (optional)
-  auto_approve_minor: false
-  # Require at least one approval before merging (optional)
-  require_approval: true
+  default_branch: main
 
-# Configure which files to analyze
+# Configure which branches should be reviewed
+branches:
+  include:
+    - main
+    - develop
+    - feature/*
+
+# Configure which files should be reviewed
 files:
   include:
-    - "**/*.{js,ts,vue,jsx,tsx,py,java,go,php,rb,sh}"
-  exclude:
-    - "**/node_modules/**"
-    - "**/dist/**"
-    - "**/vendor/**"
+    - "**/*.java"
+    - "**/*.yml"
+    - "**/*.xml"
+    - "**/*.vue"
+    - "**/*.js"
 
-# Customize review behavior (optional)
-behavior:
-  # Comment on new issues found
-  comment_on_new_issues: true
-  # Suggest fixes for issues
-  suggest_fixes: true
-  # Request changes for critical issues
-  request_changes_for_critical: true
+# Configure review settings
+settings:
+  # Enable automatic reviews on pull requests
+  auto_review: true
+  # Require approval from CodeRabbit before merging
+  require_approval: true
