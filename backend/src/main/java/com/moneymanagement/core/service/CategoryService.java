@@ -6,6 +6,9 @@ import com.moneymanagement.core.repository.CategoryRepository;
 import com.moneymanagement.core.validator.CategoryValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,11 +33,11 @@ public class CategoryService {
      *
      * @return List of CategoryDTO representing all categories.
      */
-    public List<CategoryDTO> getAllCategories() {
-        List<Category> categories = categoryRepository.findAll();
-        return categories.stream()
-                .map(CategoryDTO::fromEntity)
-                .collect(Collectors.toList());
+    public Page<CategoryDTO> getAllCategories(int page, int size, String sort, String direction) {
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+        Page<Category> categories = categoryRepository.findAll(pageRequest);
+        return categories.map(CategoryDTO::fromEntity);
     }
 
     /**

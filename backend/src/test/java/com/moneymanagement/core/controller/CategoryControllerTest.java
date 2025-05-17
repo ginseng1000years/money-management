@@ -10,6 +10,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -74,17 +77,42 @@ public class CategoryControllerTest {
 
     @Test
     public void testGetAllCategories() {
-        List<CategoryDTO> mockCategories = new ArrayList<>();
-        mockCategories.add(new CategoryDTO("1", "Food", "food.png", "expense", null, null));
-        mockCategories.add(new CategoryDTO("2", "Salary", "salary.png", "income", null, null));
+        // Create test data
+        List<Category> mockCategories = new ArrayList<>();
+        mockCategories.add(new Category("Food", "food.png", "expense", null, null));
+        mockCategories.add(new Category("Salary", "salary.png", "income", null, null));
+        mockCategories.add(new Category("Transport", "transport.png", "expense", null, null));
+        mockCategories.add(new Category("Bonus", "bonus.png", "income", null, null));
 
-        when(categoryRepository.findAll()).thenReturn(new ArrayList<>()); // Mock repository call
+        // Test pagination
+        PageRequest pageRequest1 = PageRequest.of(0, 2, Sort.Direction.ASC, "name");
+        when(categoryRepository.findAll(pageRequest1)).thenReturn(new org.springframework.data.domain.PageImpl<>(
+            mockCategories.subList(0, 2), pageRequest1, mockCategories.size()));
 
-        List<CategoryDTO> result = categoryController.getAllCategories();
+        Page<CategoryDTO> result1 = categoryController.getAllCategories(0, 2, "name", "asc");
+        
+        assertEquals(0, result1.getNumber());
+        assertEquals(2, result1.getSize());
+        assertEquals(4, result1.getTotalElements());
+        assertEquals(2, result1.getContent().size());
+        assertEquals("Bonus", result1.getContent().get(0).getName());
+        assertEquals("Food", result1.getContent().get(1).getName());
 
-        assertEquals(0, result.size()); // Since repository returns empty list
+        // Test sorting descending
+        PageRequest pageRequest2 = PageRequest.of(0, 2, Sort.Direction.DESC, "name");
+        when(categoryRepository.findAll(pageRequest2)).thenReturn(new org.springframework.data.domain.PageImpl<>(
+            mockCategories.subList(2, 4), pageRequest2, mockCategories.size()));
 
-        verify(categoryRepository, times(1)).findAll();
+        Page<CategoryDTO> result2 = categoryController.getAllCategories(0, 2, "name", "desc");
+        
+        assertEquals(0, result2.getNumber());
+        assertEquals(2, result2.getSize());
+        assertEquals(4, result2.getTotalElements());
+        assertEquals(2, result2.getContent().size());
+        assertEquals("Transport", result2.getContent().get(0).getName());
+        assertEquals("Salary", result2.getContent().get(1).getName());
+
+        verify(categoryRepository, times(2)).findAll(any(PageRequest.class));
     }
 
     @Test
