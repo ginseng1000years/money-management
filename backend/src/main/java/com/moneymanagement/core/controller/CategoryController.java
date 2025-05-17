@@ -29,9 +29,13 @@ public class CategoryController {
     private CategoryService categoryService;
 
     /**
-     * Retrieves a list of all categories.
+     * Retrieves a paginated and sorted list of categories.
      *
-     * @return List of CategoryDTO objects representing all categories.
+     * @param page the page number to retrieve, starting from 0
+     * @param size the number of categories per page
+     * @param sort the field by which to sort the categories
+     * @param direction the sort direction, either "asc" or "desc"
+     * @return a page of CategoryDTO objects matching the pagination and sorting criteria
      */
     @GetMapping
     public Page<CategoryDTO> getAllCategories(
