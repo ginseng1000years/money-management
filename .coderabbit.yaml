@@ -3,17 +3,14 @@ default_branch: main
 reviews:
   review_status: true
   path_filters:
-    branches:
-      include:
-        - main
-        - develop
-        - feature/*
-    files:
-      include:
-        - "**/*.java"
-        - "**/*.yml"
-        - "**/*.xml"
-        - "**/*.vue"
-        - "**/*.js"
+    - "**/*.java"
+    - "**/*.yml"
+    - "**/*.xml"
+    - "**/*.vue"
+    - "**/*.js"
   auto_review:
     enabled: true
+    base_branches:
+      - main
+      - develop
+      - feature/*
