@@ -216,24 +216,26 @@ export default {
       this.editCategoryData = null;
     },
     async fetchCategories() {
-      apiClient.get('/api/categories', {
-        params: {
-          page: this.currentPage - 1,
-          size: this.itemsPerPage,
-          sort: this.sortColumn + ',' + this.sortDirection
-        }
-      })
-      .then(response => {
+      this.loading = true;
+      try {
+        const response = await apiClient.get('/api/categories', {
+          params: {
+            page: this.currentPage - 1,
+            size: this.itemsPerPage,
+            sort: this.sortColumn + ',' + this.sortDirection
+          }
+        });
         this.categories = response.data.content;
         this.totalItems = response.data.totalElements;
         this.totalPages = Math.ceil(response.data.totalElements / this.itemsPerPage);
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error fetching categories:', error);
         if (error.response && error.response.status === 401) {
           this.showAuthError = true;
         }
-      });
+      } finally {
+        this.loading = false;
+      }
     },
     
     filterCategories() {
