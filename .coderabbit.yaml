@@ -2,8 +2,10 @@
 # Enables automated code reviews on all branches
 
 reviews:
-  # Enable reviews on non-default branches
+  # Enable reviews on all branches
   review_status: true
+  # Enable reviews on non-default branches
+  review_non_default_branches: true
   # Enable auto-approval for minor changes (optional)
   auto_approve_minor: false
   # Require at least one approval before merging (optional)

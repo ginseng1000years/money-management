@@ -79,10 +79,10 @@ public class CategoryControllerTest {
     public void testGetAllCategories() {
         // Create test data
         List<Category> mockCategories = new ArrayList<>();
+        mockCategories.add(new Category("Bonus", "bonus.png", "income", null, null));
         mockCategories.add(new Category("Food", "food.png", "expense", null, null));
         mockCategories.add(new Category("Salary", "salary.png", "income", null, null));
         mockCategories.add(new Category("Transport", "transport.png", "expense", null, null));
-        mockCategories.add(new Category("Bonus", "bonus.png", "income", null, null));
 
         // Test pagination
         PageRequest pageRequest1 = PageRequest.of(0, 2, Sort.Direction.ASC, "name");
