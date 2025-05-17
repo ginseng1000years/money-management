@@ -239,23 +239,29 @@ export default {
 
 <style scoped>
 .categories {
-  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
 }
 
 .add-category-btn {
-  margin-bottom: 15px;
-  padding: 8px 16px;
-  background-color: #409eff;
+  margin-bottom: 30px;
+  padding: 12px 24px;
+  background-color: #1e88e5;
   border: none;
   color: white;
   font-weight: 600;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .add-category-btn:hover {
-  background-color: #66b1ff;
+  background-color: #1976d2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .edit-btn {
@@ -293,27 +299,25 @@ export default {
 table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 10px;
-  border-radius: 4px;
+  border-spacing: 0;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   background-color: white;
 }
 
 th, td {
-  padding: 12px 20px;
+  padding: 16px 24px;
   text-align: left;
   vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 th {
-  background-color: #67c23a; /* green */
-  color: white;
-  font-weight: 700;
-  font-size: 15px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.2);
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 tbody tr {
@@ -334,59 +338,67 @@ td img {
 }
 
 .category-form {
-  margin-bottom: 20px;
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background-color: #f9f9f9;
+  margin-bottom: 30px;
+  padding: 24px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .category-form div {
-  margin-bottom: 10px;
+  margin-bottom: 16px;
 }
 
 .category-form label {
   display: block;
-  font-weight: 600;
-  margin-bottom: 5px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #424242;
+  font-size: 14px;
 }
 
 .category-form input,
 .category-form select,
 .category-form textarea {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
   box-sizing: border-box;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
 }
 
 .category-form button {
-  margin-right: 10px;
-  padding: 8px 16px;
+  margin-right: 12px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 4px;
-  font-weight: 600;
+  border-radius: 6px;
+  font-weight: 500;
   cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
 }
 
 .category-form button[type="submit"] {
-  background-color: #67c23a;
+  background-color: #1e88e5;
   color: white;
 }
 
 .category-form button[type="submit"]:disabled {
-  background-color: #a0d911;
+  background-color: #90caf9;
   cursor: not-allowed;
 }
 
 .category-form .cancel-btn {
-  background-color: #f56c6c;
+  background-color: #f44336;
   color: white;
 }
 
 .category-form .cancel-btn:hover {
-  background-color: #f78989;
+  background-color: #e53935;
+  transform: translateY(-1px);
 }
 
 table {
