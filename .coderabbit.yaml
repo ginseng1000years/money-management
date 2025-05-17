@@ -1,27 +1,19 @@
 # CodeRabbit configuration
+default_branch: main
 reviews:
   review_status: true
-  default_branch: main
-
-# Configure which branches should be reviewed
-branches:
-  include:
-    - main
-    - develop
-    - feature/*
-
-# Configure which files should be reviewed
-files:
-  include:
-    - "**/*.java"
-    - "**/*.yml"
-    - "**/*.xml"
-    - "**/*.vue"
-    - "**/*.js"
-
-# Configure review settings
-settings:
-  # Enable automatic reviews on pull requests
-  auto_review: true
-  # Require approval from CodeRabbit before merging
-  require_approval: true
+  path_filters:
+    branches:
+      include:
+        - main
+        - develop
+        - feature/*
+    files:
+      include:
+        - "**/*.java"
+        - "**/*.yml"
+        - "**/*.xml"
+        - "**/*.vue"
+        - "**/*.js"
+  auto_review:
+    enabled: true
