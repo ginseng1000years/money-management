@@ -58,8 +58,11 @@ public class CategoryControllerTest {
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        CategoryService categoryService = new CategoryService(categoryRepository, categoryMapper, categoryValidator);
-        categoryController = new CategoryController(categoryService);
+        // Initialize service and controller once per test class
+        if (categoryController == null) {
+            CategoryService categoryService = new CategoryService(categoryRepository, categoryMapper, categoryValidator);
+            categoryController = new CategoryController(categoryService);
+        }
     }
 
     @AfterEach
@@ -76,25 +79,26 @@ public class CategoryControllerTest {
          * - The returned CategoryDTO contains the updated values
          */
         @Test
-        void updateCategory_shouldUpdateExistingCategory_whenValidInputProvided() {
-            // Given
-            String categoryId = "4";
-            CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
+    void updateCategory_shouldUpdateExistingCategory_whenValidInputProvided() {
+        // Given
+        String categoryId = "4";
+        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
 
-            Category existingCategory = new Category();
-            existingCategory.setId(categoryId);
-            existingCategory.setName("Old Name");
-            existingCategory.setImage("old.png");
-            existingCategory.setType("expense");
+        Category existingCategory = new Category();
+        existingCategory.setId(categoryId);
+        existingCategory.setName("Old Name");
+        existingCategory.setImage("old.png");
+        existingCategory.setType("expense");
 
-            Category updatedCategory = new Category();
-            updatedCategory.setId(categoryId);
-            updatedCategory.setName(updateDTO.getName());
-            updatedCategory.setImage(updateDTO.getImage());
-            updatedCategory.setType(updateDTO.getType());
+        Category updatedCategory = new Category();
+        updatedCategory.setId(categoryId);
+        updatedCategory.setName(updateDTO.getName());
+        updatedCategory.setImage(updateDTO.getImage());
+        updatedCategory.setType(updateDTO.getType());
 
-            when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
-            when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+        // Pre-configure mocks to avoid repetitive setup
+        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
 
             // When
             CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
