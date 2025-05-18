@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -471,6 +472,22 @@ public class CategoryControllerTest {
                 categoryController.deleteCategory(nonExistentId);
             }, "Should not throw exception when deleting non-existent category");
 
+            verify(categoryRepository, times(1)).deleteById(nonExistentId);
+        }
+        
+        @Test
+        void deleteCategory_shouldThrowException_whenRepositoryThrowsEmptyResultDataAccessException() {
+            // Given
+            String nonExistentId = "999";
+            
+            doThrow(new org.springframework.dao.EmptyResultDataAccessException(1))
+                .when(categoryRepository).deleteById(nonExistentId);
+            
+            // When & Then
+            assertThrows(IllegalArgumentException.class, () -> {
+                categoryController.deleteCategory(nonExistentId);
+            }, "Should throw IllegalArgumentException when repository throws EmptyResultDataAccessException");
+            
             verify(categoryRepository, times(1)).deleteById(nonExistentId);
         }
     }
