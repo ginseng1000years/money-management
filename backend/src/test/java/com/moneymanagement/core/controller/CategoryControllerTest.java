@@ -6,12 +6,13 @@ import com.moneymanagement.core.model.Category;
 import com.moneymanagement.core.repository.CategoryRepository;
 import com.moneymanagement.core.service.CategoryService;
 import com.moneymanagement.core.validator.CategoryValidator;
+import com.moneymanagement.core.validator.impl.CategoryValidatorImpl;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -51,7 +52,8 @@ public class CategoryControllerTest {
     
     private final CategoryMapper categoryMapper = new CategoryMapperImpl(); // MapStruct will provide the implementation
 
-    private final CategoryValidator categoryValidator = new CategoryValidator(); // MapStruct will provide the implementation
+
+    private CategoryValidator categoryValidator = new CategoryValidatorImpl();
     private CategoryController categoryController;
 
     private AutoCloseable closeable;
