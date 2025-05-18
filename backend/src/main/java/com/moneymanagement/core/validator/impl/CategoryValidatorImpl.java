@@ -31,6 +31,17 @@ public void validate(CategoryDTO categoryDTO) {
             !(categoryDTO.getType().equalsIgnoreCase("income") || categoryDTO.getType().equalsIgnoreCase("expense"))) {
             throw new IllegalArgumentException("Category type must be either 'income' or 'expense'");
         }
+        
+        // Validate circular reference if parent category exists
+        if (categoryDTO.getParentCategory() != null && categoryDTO.getParentCategory().getId() != null) {
+            Category parent = new Category();
+            parent.setId(categoryDTO.getParentCategory().getId());
+            
+            Category child = new Category();
+            child.setId(categoryDTO.getId());
+            
+            validateCircularReference(parent, child);
+        }
     }
     
         /**

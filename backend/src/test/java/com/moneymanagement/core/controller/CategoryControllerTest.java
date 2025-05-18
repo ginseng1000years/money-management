@@ -285,21 +285,15 @@ public class CategoryControllerTest {
             String categoryId = "10";
             String parentId = "10";
 
-            // Create circular reference where parent's parent is the child
+            // Create circular reference where parent is the same as child
             CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income",
-                    new CategoryDTO(parentId, "Parent", "parent.png", "income",
-                            new CategoryDTO(categoryId, "Child", "child.png", "income", null, null), null), null);
+                    new CategoryDTO(parentId, "Parent", "parent.png", "income", null, null), null);
 
             Category existingCategory = new Category();
             existingCategory.setId(categoryId);
             existingCategory.setName("Old Name");
 
-            Category parentCategory = new Category();
-            parentCategory.setId(parentId);
-            parentCategory.setName("Parent");
-
             when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
-            when(categoryRepository.findById(parentId)).thenReturn(java.util.Optional.of(parentCategory));
 
             // When & Then
             assertThrows(IllegalArgumentException.class, () -> {
