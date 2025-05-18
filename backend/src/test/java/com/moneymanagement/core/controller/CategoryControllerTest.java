@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -49,7 +50,7 @@ public class CategoryControllerTest {
     private CategoryRepository categoryRepository;
     
     private final CategoryMapper categoryMapper = new CategoryMapperImpl(); // MapStruct will provide the implementation
-    
+
     private final CategoryValidator categoryValidator = new CategoryValidator(); // MapStruct will provide the implementation
     private CategoryController categoryController;
 
@@ -72,6 +73,26 @@ public class CategoryControllerTest {
 
     @Nested
     class UpdateCategoryTests {
+        
+        private Category createTestCategory(String id, String name, String image, String type, Category parent) {
+            Category category = new Category();
+            category.setId(id);
+            category.setName(name);
+            category.setImage(image);
+            category.setType(type);
+            category.setParentCategory(parent);
+            return category;
+        }
+        
+        private CategoryDTO createTestCategoryDTO(String id, String name, String image, String type, CategoryDTO parent) {
+            return new CategoryDTO(id, name, image, type, parent, null);
+        }
+        
+        private void verifyCommonUpdateCalls(String categoryId) {
+            verify(categoryRepository, times(1)).findById(categoryId);
+            verify(categoryRepository, times(1)).save(any(Category.class));
+        }
+
         /**
          * Tests that updating a category with valid input successfully updates the existing category.
          * Verifies that:
@@ -79,26 +100,16 @@ public class CategoryControllerTest {
          * - The returned CategoryDTO contains the updated values
          */
         @Test
-    void updateCategory_shouldUpdateExistingCategory_whenValidInputProvided() {
-        // Given
-        String categoryId = "4";
-        CategoryDTO updateDTO = new CategoryDTO(null, "Updated Name", "updated.png", "income", null, null);
+        void updateCategory_shouldUpdateExistingCategory_whenValidInputProvided() {
+            // Given
+            String categoryId = "4";
+            CategoryDTO updateDTO = createTestCategoryDTO(null, "Updated Name", "updated.png", "income", null);
+            
+            Category existingCategory = createTestCategory(categoryId, "Old Name", "old.png", "expense", null);
+            Category updatedCategory = createTestCategory(categoryId, "Updated Name", "updated.png", "income", null);
 
-        Category existingCategory = new Category();
-        existingCategory.setId(categoryId);
-        existingCategory.setName("Old Name");
-        existingCategory.setImage("old.png");
-        existingCategory.setType("expense");
-
-        Category updatedCategory = new Category();
-        updatedCategory.setId(categoryId);
-        updatedCategory.setName(updateDTO.getName());
-        updatedCategory.setImage(updateDTO.getImage());
-        updatedCategory.setType(updateDTO.getType());
-
-        // Pre-configure mocks to avoid repetitive setup
-        when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
-        when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
+            when(categoryRepository.findById(categoryId)).thenReturn(java.util.Optional.of(existingCategory));
+            when(categoryRepository.save(any(Category.class))).thenReturn(updatedCategory);
 
             // When
             CategoryDTO result = categoryController.updateCategory(categoryId, updateDTO);
@@ -111,8 +122,7 @@ public class CategoryControllerTest {
                     () -> assertEquals("income", result.getType(), "Type should be updated")
             );
 
-            verify(categoryRepository, times(1)).findById(categoryId);
-            verify(categoryRepository, times(1)).save(any(Category.class));
+            verifyCommonUpdateCalls(categoryId);
         }
 
         /**
@@ -192,8 +202,7 @@ public class CategoryControllerTest {
             // Then
             assertNull(result.getParentCategory(), "Parent category should be null");
 
-            verify(categoryRepository, times(1)).findById(categoryId);
-            verify(categoryRepository, times(1)).save(any(Category.class));
+            verifyCommonUpdateCalls(categoryId);
         }
 
         /**
@@ -225,8 +234,7 @@ public class CategoryControllerTest {
 
             // Then
             assertEquals("Updated Name", result.getName());
-            verify(categoryRepository, times(1)).findById(categoryId);
-            verify(categoryRepository, times(1)).save(any(Category.class));
+            verifyCommonUpdateCalls(categoryId);
 
             // Verify parent category is set to null
             assertNull(result.getParentCategory(), "Parent category should be null when parent ID is null");
