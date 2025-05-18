@@ -1,82 +1,89 @@
-# Money Management Application
+# Money Management System
 
-## Project Description
-This is a Money Management Application consisting of a Vue 3 single-page frontend and a Spring Boot backend. The application supports user authentication via OAuth2 Google Single Sign-On (SSO) and manages financial data stored in a MongoDB database.
+## Overview
+This project is a comprehensive money management system with backend services built using Spring Boot. The system provides robust category management capabilities with parent-child relationships and type-based categorization.
 
-## Architecture Overview
-The project is divided into three main parts:
+## Features
+- **Category Management**: Full CRUD operations for financial categories
+- **Hierarchical Structure**: Support for parent-child category relationships
+- **Type Classification**: Categories can be marked as income or expense types
+- **Validation**: Built-in validation for category data and relationships
+- **Pagination & Sorting**: Efficient data retrieval with pagination and sorting
 
-- **Frontend (Vue 3 SPA)**:  
-  A Vue 3 single-page application with routing for Login, Home, and OAuth2 Callback views. It communicates with the backend for authentication and data operations.
+## Technologies
+- **Backend**:
+  - Java 17
+  - Spring Boot 3.x
+  - Spring Data MongoDB
+  - MapStruct (for DTO-Entity mapping)
+- **Database**: MongoDB
 
-- **Backend (Spring Boot)**:  
-  A Spring Boot application configured with OAuth2 Google SSO, JWT validation, and CORS settings. It exposes REST APIs via controllers that interact with the MongoDB database.
+## API Endpoints
+### Category API
+- `GET /api/categories` - Retrieve paginated list of categories
+  - Parameters: page, size, sort, direction
+- `POST /api/categories` - Create new category
+- `PUT /api/categories/{id}` - Update existing category
+- `DELETE /api/categories/{id}` - Delete category
 
-- **Services**:  
-  MongoDB runs as a container managed by Docker Compose.
+## Setup Instructions
+1. **Prerequisites**:
+   - Java 17 JDK
+   - Maven 3.8+
+   - MongoDB 5.0+
 
-## Backend
-
-### Technology Stack
-- Java 11
-- Spring Boot 2.7.5
-- Spring Security with OAuth2 Client
-- MongoDB
-- Maven for build and dependency management
-
-### Build and Run
-1. Ensure you have Java 11 and Maven installed.
-2. Navigate to the `backend` directory.
-3. Build the project:
+2. **Installation**:
    ```bash
+   git clone <repository-url>
+   cd money-management
    mvn clean install
    ```
-4. Run the application:
+
+3. **Configuration**:
+   - Update MongoDB connection in `application.properties` if not using localhost
+
+4. **Running**:
    ```bash
    mvn spring-boot:run
    ```
 
-## Frontend
+## Development
+### MapStruct Implementation Details
+1. **Mapper Interfaces**:
+   - Located in `com.example.money.mappers` package
+   - Annotated with `@Mapper(componentModel = "spring")`
+   - Example:
+     ```java
+     @Mapper
+     public interface CategoryMapper {
+         CategoryDTO toDto(Category entity);
+         Category toEntity(CategoryDTO dto);
+     }
+     ```
 
-### Technology Stack
-- Vue 3
-- Vue Router
-- Axios
-- Vue CLI Service
+2. **Usage in Services**:
+   - Autowired mapper interfaces
+   - Used to convert between DTOs and entities
+   - Example:
+     ```java
+     Category category = categoryMapper.toEntity(categoryDTO);
+     ```
 
-### Build and Run
-1. Ensure you have Node.js and npm installed.
-2. Navigate to the `frontend` directory.
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-4. Run the development server:
-   ```bash
-   npm run serve
-   ```
-5. To build for production:
-   ```bash
-   npm run build
-   ```
+3. **Benefits**:
+   - Eliminates boilerplate mapping code
+   - Compile-time safety (errors caught early)
+   - Better performance than reflection-based mappers
+   - Easy to maintain and extend
+- The project uses MapStruct for efficient DTO-entity mapping
+  - MapStruct configuration requires `@Mapper` annotation on interfaces
+  - Mapper implementations are generated during compilation
+  - Supports complex mappings between DTOs and entities
+  - Provides compile-time type safety
+  - Includes null checks and default values
+- Category validation includes circular reference checks
+- MongoDB document structure supports hierarchical categories
 
-## Deployment
-
-### MongoDB Service
-MongoDB runs as a Docker container managed by Docker Compose.
-
-To start the MongoDB container, run the following command in the `deployment` directory:
-```bash
-docker-compose up -d
-```
-
-This will start MongoDB on port 27017 with data persisted in a Docker volume.
-
-## Documentation
-Additional documentation can be found in the `document` directory, including:
-- Authentication flow
-- Sequence diagrams for category operations
-- Architecture diagram (`architecture-diagram.md`)
-
-## License
-This project does not currently include a license. Please add one if needed.
+## Future Enhancements
+- Add user authentication
+- Implement budget tracking features
+- Add reporting capabilities

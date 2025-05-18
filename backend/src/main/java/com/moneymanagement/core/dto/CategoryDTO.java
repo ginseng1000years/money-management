@@ -1,7 +1,5 @@
 package com.moneymanagement.core.dto;
 
-import com.moneymanagement.core.model.Category;
-
 public class CategoryDTO {
 
     private String id;
@@ -23,32 +21,7 @@ public class CategoryDTO {
         this.description = description;
     }
 
-    public static CategoryDTO fromEntity(Category category) {
-        if (category == null) {
-            return null;
-        }
-        return new CategoryDTO(
-            category.getId(),
-            category.getName(),
-            category.getImage(),
-            category.getType(),
-            fromEntity(category.getParentCategory()),
-            category.getDescription()
-        );
-    }
 
-    public Category toEntity() {
-        Category category = new Category();
-        category.setId(this.id);
-        category.setName(this.name);
-        category.setImage(this.image);
-        category.setType(this.type);
-        if (this.parentCategory != null) {
-            category.setParentCategory(this.parentCategory.toEntity());
-        }
-        category.setDescription(this.description);
-        return category;
-    }
 
     // Getters and setters
 

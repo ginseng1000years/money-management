@@ -2,6 +2,15 @@
   <div class="categories">
     <h2>Categories</h2>
 
+    <div class="search-container">
+      <input 
+        v-model="searchTerm" 
+        @input="filterCategories"
+        placeholder="Search categories..."
+        class="search-input"
+      />
+    </div>
+
     <button @click="openModal" class="add-category-btn">Add Category</button>
 
     <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
@@ -51,7 +60,8 @@
     <table>
       <thead>
         <tr>
-          <th>Name</th>
+          <th @click="sortBy('name')">Name <span v-if="sortColumn === 'name'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
+          <th>Type</th>
           <th>Image</th>
           <th>Parent Category</th>
           <th>Description</th>
@@ -59,13 +69,17 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-if="categories.length === 0">
-          <td colspan="5" style="text-align: center; font-style: italic;">No category</td>
+        <tr v-if="(filteredCategories.length > 0 ? filteredCategories : categories).length === 0">
+          <td colspan="6" style="text-align: center; font-style: italic;">No category</td>
         </tr>
-        <tr v-for="category in categories" :key="category.id">
+        <tr v-for="category in filteredCategories.length > 0 ? filteredCategories : categories" :key="category.id">
           <td>{{ category.name }}</td>
-          <td>
-            <img v-if="category.image" :src="category.image" alt="Category Image" width="50" height="50" />
+          <td>{{ category.type }}</td>
+          <td class="category-icon-cell">
+            <div v-if="category.image" class="category-icon-container">
+              <img :src="getFullImagePath(category.image)" :alt="category.name + ' icon'" class="category-icon" />
+            </div>
+            <span v-else>-</span>
           </td>
           <td>{{ category.parentCategory ? category.parentCategory.name : '-' }}</td>
           <td>{{ category.description }}</td>
@@ -76,6 +90,29 @@
         </tr>
       </tbody>
     </table>
+    
+    <div class="pagination-controls">
+      <button 
+        @click="previousPage" 
+        :disabled="currentPage === 1"
+        class="pagination-btn"
+      >
+        Previous
+      </button>
+      <span class="page-info" v-if="totalPages > 1">
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
+      <span class="page-info" v-else>
+        Page {{ currentPage }}
+      </span>
+      <button 
+        @click="nextPage" 
+        :disabled="currentPage === totalPages"
+        class="pagination-btn"
+      >
+        Next
+      </button>
+    </div>
 
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteConfirm" class="delete-confirm-overlay" @click.self="cancelDelete">
@@ -106,6 +143,9 @@ export default {
   data() {
     return {
       categories: [],
+      filteredCategories: [],
+      searchTerm: '',
+      totalPages: 0,
       newCategory: {
         name: '',
         type: '',
@@ -120,12 +160,45 @@ export default {
       deleteConfirmCategoryId: null,
       showDeleteConfirm: false,
       showAuthError: false,
+      currentPage: 1,
+      itemsPerPage: 10,
+      totalItems: 0,
+      sortColumn: 'name',
+      sortDirection: 'asc'
     }
   },
   created() {
     this.fetchCategories();
   },
   methods: {
+    sortBy(column) {
+      if (this.sortColumn === column) {
+        this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        this.sortColumn = column;
+        this.sortDirection = 'asc';
+      }
+      
+      this.fetchCategories();
+    },
+    previousPage() {
+      if (this.currentPage > 1) {
+        this.currentPage--;
+        this.fetchCategories();
+      }
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++;
+        this.fetchCategories();
+      }
+    },
+    getFullImagePath(imagePath) {
+      if (imagePath.startsWith('http') || imagePath.startsWith('/')) {
+        return imagePath;
+      }
+      return `${process.env.VUE_APP_API_URL}/${imagePath}`;
+    },
     openModal() {
       this.showModal = true;
       this.error = null;
@@ -143,13 +216,39 @@ export default {
       this.editCategoryData = null;
     },
     async fetchCategories() {
+      this.loading = true;
       try {
-        const response = await apiClient.get('/api/categories');
-        this.categories = response.data;
-        console.log(this.categories)
+        const response = await apiClient.get('/api/categories', {
+          params: {
+            page: this.currentPage - 1,
+            size: this.itemsPerPage,
+            sort: this.sortColumn + ',' + this.sortDirection
+          }
+        });
+        this.categories = response.data.content;
+        this.totalItems = response.data.totalElements;
+        this.totalPages = Math.ceil(response.data.totalElements / this.itemsPerPage);
       } catch (error) {
-        console.error('Failed to fetch categories:', error);
+        console.error('Error fetching categories:', error);
+        if (error.response && error.response.status === 401) {
+          this.showAuthError = true;
+        }
+      } finally {
+        this.loading = false;
       }
+    },
+    
+    filterCategories() {
+      if (!this.searchTerm) {
+        this.filteredCategories = [];
+        return;
+      }
+      
+      const searchTermLower = this.searchTerm.toLowerCase();
+      this.filteredCategories = this.categories.filter(category => 
+        category.name.toLowerCase().includes(searchTermLower) ||
+        (category.description && category.description.toLowerCase().includes(searchTermLower))
+      );
     },
     async addCategory() {
       this.error = null;
@@ -179,6 +278,7 @@ export default {
         }
 
         this.closeModal();
+        this.filterCategories();
       } catch (error) {
         this.error = (error.response && error.response.data) ? error.response.data : 'Failed to save category';
         console.error('Failed to save category:', error);
@@ -206,6 +306,7 @@ export default {
       try {
         await apiClient.delete(`/api/categories/${this.deleteConfirmCategoryId}`);
         this.categories = this.categories.filter(cat => cat.id !== this.deleteConfirmCategoryId);
+        this.filterCategories();
       } catch (error) {
         if (error.response && error.response.status === 401) {
           // Show authentication error modal
@@ -241,7 +342,70 @@ export default {
 .categories {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 20px 10px;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 15px;
+}
+
+.pagination-btn {
+  padding: 8px 16px;
+  background-color: #1e88e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.pagination-btn:disabled {
+  background-color: #90caf9;
+  cursor: not-allowed;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #1976d2;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #555;
+}
+
+@media (max-width: 768px) {
+  .categories {
+    padding: 15px 5px;
+  }
+}
+
+.search-container {
+  margin-bottom: 20px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #1e88e5;
+}
+
+@media (max-width: 768px) {
+  .search-input {
+    padding: 8px 12px;
+    font-size: 16px;
+  }
 }
 
 .add-category-btn {
@@ -304,6 +468,24 @@ table {
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   background-color: white;
+}
+
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  th, td {
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+
+  .edit-btn, .delete-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
 }
 
 th, td {
@@ -422,6 +604,27 @@ img {
   height: auto;
 }
 
+.category-icon-cell {
+  text-align: center;
+}
+
+.category-icon-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+  overflow: hidden;
+}
+
+.category-icon {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 /* Modal styles */
 .modal-overlay {
   position: fixed;
@@ -443,6 +646,19 @@ img {
   max-width: 500px;
   width: 90%;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .category-form input,
+  .category-form select,
+  .category-form textarea {
+    font-size: 16px;
+  }
 }
 /* Add styles for the custom delete confirmation modal */
 .delete-confirm-overlay {

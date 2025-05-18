@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 /**
  * REST controller for managing categories.
@@ -23,17 +25,29 @@ import java.util.List;
 @RequestMapping("/api/categories")
 public class CategoryController {
 
+    private final CategoryService categoryService;
+
     @Autowired
-    private CategoryService categoryService;
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     /**
-     * Retrieves a list of all categories.
+     * Retrieves a paginated and sorted list of categories.
      *
-     * @return List of CategoryDTO objects representing all categories.
+     * @param page the page number to retrieve, starting from 0
+     * @param size the number of categories per page
+     * @param sort the field by which to sort the categories
+     * @param direction the sort direction, either "asc" or "desc"
+     * @return a page of CategoryDTO objects matching the pagination and sorting criteria
      */
     @GetMapping
-    public List<CategoryDTO> getAllCategories() {
-        return categoryService.getAllCategories();
+    public Page<CategoryDTO> getAllCategories(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sort,
+            @RequestParam(defaultValue = "asc") String direction) {
+        return categoryService.getAllCategories(page, size, sort, direction);
     }
 
     /**

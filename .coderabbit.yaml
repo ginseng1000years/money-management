@@ -1,0 +1,16 @@
+# CodeRabbit configuration
+default_branch: main
+reviews:
+  review_status: true
+  path_filters:
+    - "**/*.java"
+    - "**/*.yml"
+    - "**/*.xml"
+    - "**/*.vue"
+    - "**/*.js"
+  auto_review:
+    enabled: true
+    base_branches:
+      - main
+      - develop
+      - feature/*
